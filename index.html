@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Qatar Al Nahda Transport LLC</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+--primary:#2563eb;--accent:#3b82f6;--accent2:#10b981;--danger:#ef4444;--warn:#f59e0b;
+--bg:#f8fafc;--card:#ffffff;--border:#e2e8f0;--text:#1e293b;--text2:#475569;--text3:#64748b;
+--shadow:0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);--radius:8px;
+--font:"Plus Jakarta Sans",sans-serif;--mono:"JetBrains Mono",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
+button{font-family:var(--font);cursor:pointer;border:none;outline:none;}
+input,select,textarea{font-family:var(--font);outline:none;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;color:var(--text);background:#ffffff;width:100%;transition:border-color .2s;}
+input:focus,select:focus,textarea:focus{border-color:#2563eb;}
+label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px;}
+select option{background:#1e293b;}
+#app{display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:#ffffff;border-bottom:1px solid var(--border);color:var(--text);padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 2px 0 rgba(0,0,0,0.05);}
+.topbar-logo{font-size:15px;font-weight:800;display:flex;align-items:center;gap:10px;}
+.topbar-logo .logo-icon{width:34px;height:34px;background:linear-gradient(135deg,#2563eb,#16a34a);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.topbar-logo .logo-sub{font-size:9px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:1px;}
+.topbar-right{display:flex;gap:8px;align-items:center;}
+.hamburger{background:none;color:#1e293b;font-size:22px;padding:4px 8px;display:block;border:1.5px solid #e2e8f0;border-radius:7px;}
+@media(min-width:701px){.hamburger{display:none;}}
+.sidebar{width:224px;background:#ffffff;min-height:calc(100vh - 60px);position:fixed;top:60px;left:0;z-index:99;display:flex;flex-direction:column;padding:14px 0 24px;transition:transform .25s;border-right:1px solid var(--border);}
+.sidebar.hidden{transform:translateX(-100%);}
+.main{margin-left:224px;padding:22px;flex:1;transition:margin .25s;min-width:0;}
+.main.full{margin-left:0;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;border-left:3px solid transparent;margin:1px 8px;border-radius:0 8px 8px 0;transition:all .15s;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:var(--text);}
+.nav-item.active{background:rgba(37,99,235,.08);color:var(--primary);border-left-color:var(--primary);font-weight:700;}
+.nav-icon{font-size:14px;width:18px;text-align:center;}
+.nav-section{font-size:10px;font-weight:700;letter-spacing:1.8px;color:var(--text3);padding:14px 18px 5px;text-transform:uppercase;}
+.main{margin-left:224px;padding:22px;flex:1;transition:margin .25s;min-width:0;}
+.main.full{margin-left:0;}
+/* Multi-color stat cards */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
+.sc{border-radius:var(--radius);padding:16px;position:relative;overflow:hidden;}
+.sc::before{content:"";position:absolute;top:-18px;right:-18px;width:65px;height:65px;border-radius:50%;opacity:.15;}
+.sc-blue{background:linear-gradient(135deg,#1d4ed8,#1e40af);} .sc-blue::before{background:#93c5fd;}
+.sc-green{background:linear-gradient(135deg,#15803d,#166534);} .sc-green::before{background:#86efac;}
+.sc-red{background:linear-gradient(135deg,#b91c1c,#991b1b);} .sc-red::before{background:#fca5a5;}
+.sc-yellow{background:linear-gradient(135deg,#b45309,#92400e);} .sc-yellow::before{background:#fcd34d;}
+.sc-grey{background:linear-gradient(135deg,#374151,#1f2937);} .sc-grey::before{background:#9ca3af;}
+.sc-purple{background:linear-gradient(135deg,#6d28d9,#4c1d95);} .sc-purple::before{background:#c4b5fd;}
+.sc-black{background:linear-gradient(135deg,#111827,#030712);border:1px solid #374151;}
+.sc-teal{background:linear-gradient(135deg,#0f766e,#134e4a);} .sc-teal::before{background:#5eead4;}
+.stat-icon{position:absolute;top:12px;right:12px;font-size:24px;opacity:.28;}
+.stat-label{font-size:11px;font-weight:600;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.8px;}
+.stat-value{font-size:21px;font-weight:800;color:#fff;margin-top:5px;font-family:var(--mono);}
+.stat-sub{font-size:10px;color:rgba(255,255,255,.5);margin-top:2px;}
+/* Cards */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;border:1px solid var(--border);}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.ct-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+/* Buttons */
+.btn{padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:all .15s;white-space:nowrap;cursor:pointer;border:none;}
+.btn-primary,.btn-blue{background:#2563eb;color:#fff;} .btn-primary:hover,.btn-blue:hover{background:#1d4ed8;}
+.btn-success,.btn-green{background:#16a34a;color:#fff;} .btn-success:hover,.btn-green:hover{background:#15803d;}
+.btn-danger,.btn-red{background:#dc2626;color:#fff;} .btn-danger:hover,.btn-red:hover{background:#b91c1c;}
+.btn-warn,.btn-yellow{background:#ca8a04;color:#fff;} .btn-warn:hover,.btn-yellow:hover{background:#a16207;}
+.btn-gray,.btn-grey{background:#374151;color:#d1d5db;} .btn-gray:hover,.btn-grey:hover{background:#4b5563;}
+.btn-outline{background:transparent;color:#3b82f6;border:1.5px solid #3b82f6;} .btn-outline:hover{background:#2563eb;color:#fff;}
+.btn-sm{padding:5px 11px;font-size:12px;border-radius:6px;}
+/* Form */
+.form-row{display:grid;gap:12px;margin-bottom:12px;}
+.form-row.cols-2{grid-template-columns:1fr 1fr;}
+.form-row.cols-3{grid-template-columns:1fr 1fr 1fr;}
+.form-row.cols-1{grid-template-columns:1fr;}
+/* Table */
+.tbl-wrap{overflow-x:auto;width:100%;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:#f1f5f9;color:var(--text2);font-weight:700;padding:10px 11px;text-align:left;white-space:nowrap;font-size:12px;border-bottom:1px solid var(--border);}
+td{padding:9px 11px;border-bottom:1px solid rgba(51,65,85,.45);vertical-align:top;color:var(--text);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,.025);}
+/* Badges */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.badge-blue{background:#1e3a8a;color:#93c5fd;}
+.badge-green{background:#14532d;color:#86efac;}
+.badge-red{background:#7f1d1d;color:#fca5a5;}
+.badge-orange{background:#713f12;color:#fcd34d;}
+.badge-gray{background:#1f2937;color:#9ca3af;}
+/* Aliases */
+.badge-yellow{background:#713f12;color:#fcd34d;}
+.badge-grey{background:#1f2937;color:#9ca3af;}
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;align-items:center;justify-content:center;padding:12px;backdrop-filter:blur(3px);}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;width:100%;max-width:720px;max-height:92vh;overflow-y:auto;box-shadow:0 25px 60px rgba(0,0,0,.5);}
+.modal-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card);z-index:2;}
+.modal-title{font-size:16px;font-weight:700;color:var(--text);}
+.modal-close{background:none;font-size:20px;color:var(--text3);padding:2px 8px;border-radius:6px;} .modal-close:hover{background:rgba(255,255,255,.08);color:var(--text);}
+.modal-body{padding:20px;}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;}
+/* Line items */
+.line-items-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;border-radius:6px;}
+.line-items-scroll-inner{min-width:560px;}
+.line-item-row{display:grid;grid-template-columns:28px minmax(160px,1fr) 60px 70px 90px 90px 30px;gap:4px;align-items:center;margin-bottom:6px;}
+.line-item-row.dn{grid-template-columns:28px minmax(200px,1fr) 60px 30px;}
+.li-col-hdr{display:grid;grid-template-columns:28px minmax(160px,1fr) 60px 70px 90px 90px 30px;gap:4px;min-width:560px;margin-bottom:4px;}
+.li-col-hdr.dn{grid-template-columns:28px minmax(200px,1fr) 60px 30px;}
+@media(max-width:700px){.line-items-scroll::after{content:'← scroll →';display:block;text-align:center;font-size:10px;color:var(--text3);padding:2px 0 4px;letter-spacing:.5px;}}
+.line-item-num{font-size:12px;color:var(--text3);text-align:center;font-weight:600;}
+.li-input{padding:6px 8px;font-size:13px;}
+.li-total{font-size:13px;font-weight:700;color:#60a5fa;padding:6px 8px;background:rgba(37,99,235,.1);border-radius:6px;min-width:80px;font-family:var(--mono);}
+.li-del{background:none;color:#dc2626;font-size:18px;padding:2px;}
+/* Print */
+.print-wrap{display:none;}
+@media print{body *{visibility:hidden;}.print-wrap,.print-wrap *{visibility:visible;}.print-wrap{position:fixed;top:0;left:0;width:100%;display:block!important;}.no-print{display:none!important;}@page{margin:.5cm;}}
+/* Search */
+.search-wrap{position:relative;margin-bottom:14px;}
+.search-wrap input{padding-left:36px;}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:16px;}
+/* Tabs */
+.tabs{display:flex;gap:3px;margin-bottom:16px;overflow-x:auto;padding:4px;background:#e2e8f0;border-radius:10px;}
+.tab{padding:7px 16px;border-radius:7px;font-size:13px;font-weight:600;color:var(--text2);background:transparent;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.tab.active{background:#2563eb;color:#fff;}
+.tab:hover:not(.active){background:rgba(255,255,255,.05);color:var(--text);}
+/* Toast */
+.toast{position:fixed;bottom:22px;right:22px;background:#1e293b;border:1px solid var(--border);border-left:4px solid #16a34a;color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;display:none;animation:fadeup .3s;box-shadow:0 8px 32px rgba(0,0,0,.4);}
+@keyframes fadeup{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+/* Section */
+.section{display:none;} .section.active{display:block;}
+/* Totals */
+.totals-box{background:#f8fafc;border-radius:10px;padding:14px;margin-top:12px;border:1px solid var(--border);}
+.totals-row{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;color:var(--text2);}
+.totals-row.grand{font-weight:800;font-size:15px;color:#60a5fa;border-top:1px solid var(--border);margin-top:8px;padding-top:10px;}
+/* Party */
+.party-card{background:var(--card);border-radius:10px;padding:14px;border:1px solid var(--border);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;transition:border-color .2s;}
+.party-card:hover{border-color:#2563eb;}
+.party-info{flex:1;}
+.party-name{font-weight:700;font-size:14px;color:var(--text);}
+.party-meta{font-size:11px;color:var(--text3);margin-top:3px;}
+/* Desc chip */
+.desc-chip{display:inline-block;background:rgba(37,99,235,.12);color:#60a5fa;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:500;margin:3px;cursor:pointer;border:1px solid rgba(37,99,235,.25);transition:all .12s;}
+.desc-chip:hover{background:#2563eb;color:#fff;}
+.desc-chip.selected{background:#2563eb;color:#fff;}
+/* Statement */
+.stmt-row{display:grid;grid-template-columns:90px 1fr 90px 90px 90px;gap:6px;padding:7px 8px;border-bottom:1px solid var(--border);font-size:12px;}
+.stmt-row.hdr{background:#f1f5f9;color:var(--text2);font-weight:700;border-radius:8px 8px 0 0;}
+.stmt-balance{font-weight:700;color:#60a5fa;}
+/* Empty */
+.empty{text-align:center;padding:40px 20px;color:var(--text3);}
+.empty-icon{font-size:40px;margin-bottom:10px;}
+.empty-text{font-size:14px;}
+/* Payment status badges */
+.pay-paid{background:#14532d;color:#86efac;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;display:inline-block;}
+.pay-partial{background:#713f12;color:#fcd34d;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;display:inline-block;}
+.pay-unpaid{background:#7f1d1d;color:#fca5a5;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;display:inline-block;}
+/* Mobile */
+@media(max-width:900px){.stats-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:700px){
+.hamburger{display:flex;}
+.sidebar{transform:translateX(-100%);}
+.sidebar.open{transform:translateX(0);}
+.main{margin-left:0;padding:13px;}
+.stats-grid{grid-template-columns:1fr 1fr;}
+.form-row.cols-3{grid-template-columns:1fr 1fr;}
+.form-row.cols-2{grid-template-columns:1fr 1fr;}
+.line-item-row{grid-template-columns:22px minmax(140px,1fr) 52px 66px 80px 80px 24px;}
+.modal{border-radius:14px 14px 0 0;margin-top:auto;max-height:95vh;}
+.modal-overlay{align-items:flex-end;}
+.modal-body{padding:14px;}
+.modal-footer{padding:10px 14px;gap:6px;}
+.modal-footer .btn{padding:9px 12px;font-size:12px;}
+.tabs{gap:4px;}
+.desc-chip{padding:6px 14px;font-size:13px;margin:4px;}
+}
+@media(max-width:420px){
+.stats-grid{grid-template-columns:1fr 1fr;}
+.form-row.cols-3,.form-row.cols-2{grid-template-columns:1fr;}
+.line-item-row{grid-template-columns:18px minmax(130px,1fr) 48px 60px 72px 72px 22px;}
+.stat-value{font-size:17px;}
+}
+</style>
+
+</head>
+<body>
+
+<!-- PRINT AREA -->
+
+<div class="print-wrap" id="printArea"></div>
+
+<!-- TOAST -->
+
+<div class="toast" id="toast"></div>
+
+<div id="app">
+<div class="topbar">
+<div class="topbar-logo">
+<div><div>Qatar Al Nahda <span style="color:#fbbf24">Transport LLC</span></div><div class="logo-sub"></div></div>
+</div>
+<div class="topbar-right">
+<button class="hamburger" onclick="toggleSidebar()">☰</button>
+</div>
+</div>
+
+<div style="display:flex;flex:1;">
+<nav class="sidebar" id="sidebar">
+<div class="nav-section">Main</div>
+<div class="nav-item active" onclick="nav('dashboard')"><span class="nav-icon">&#x1F4CA;</span>Dashboard</div>
+<div class="nav-item" onclick="nav('payments')"><span class="nav-icon">&#x1F4B3;</span>Payments</div>
+<div class="nav-item" onclick="nav('search')"><span class="nav-icon">&#x1F50D;</span>Global Search</div>
+<div class="nav-section">Documents</div>
+<div class="nav-item" onclick="nav('invoice')"><span class="nav-icon">&#x1F9FE;</span>Tax Invoice</div>
+<div class="nav-item" onclick="nav('quotation')"><span class="nav-icon">&#x1F4CB;</span>Quotation</div>
+<div class="nav-item" onclick="nav('creditnote')"><span class="nav-icon">&#x21A9;</span>Credit Note</div>
+<div class="nav-item" onclick="nav('lpo')"><span class="nav-icon">&#x1F6D2;</span>LPO / Purchase Order</div>
+<div class="nav-item" onclick="nav('delivery')"><span class="nav-icon">&#x1F4E6;</span>Delivery Note</div>
+<div class="nav-item" onclick="nav('statement')"><span class="nav-icon">&#x1F4C8;</span>Statement</div>
+<div class="nav-section">Master Data</div>
+<div class="nav-item" onclick="nav('parties')"><span class="nav-icon">&#x1F465;</span>Customers / Suppliers</div>
+<div class="nav-item" onclick="nav('descriptions')"><span class="nav-icon">&#x1F4DD;</span>Item Descriptions</div>
+<div class="nav-section">Settings</div>
+<div class="nav-item" onclick="nav('settings')"><span class="nav-icon">&#x2699;</span>Company Settings</div>
+</nav>
+
+<main class="main" id="main">
+
+<!-- ==================== DASHBOARD ==================== -->
+
+<div class="section active" id="sec-dashboard">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+<div>
+<div style="font-size:22px;font-weight:800;">Dashboard</div>
+<div style="font-size:12px;color:var(--text3);" id="dash-date"></div>
+</div>
+<button class="btn btn-primary btn-sm" onclick="nav('invoice')">+ New Invoice</button>
+</div>
+<div class="search-wrap">
+<span class="search-icon">🔍</span>
+<input type="text" placeholder="Search invoices, parties, amounts..." oninput="quickSearch(this.value)" id="dashSearch">
+</div>
+<div id="dashSearchResults" style="display:none;" class="card" style="margin-bottom:12px;"></div>
+<div class="stats-grid">
+<div class="sc sc-blue"><div class="stat-icon">&#x1F9FE;</div><div class="stat-label">Total Sales</div><div class="stat-value" id="st-sales">AED 0</div><div class="stat-sub">All invoices</div></div>
+<div class="sc sc-green"><div class="stat-icon">&#x1F4B0;</div><div class="stat-label">Receivable</div><div class="stat-value" id="st-recv">AED 0</div><div class="stat-sub">Credit invoices due</div></div>
+<div class="sc sc-red"><div class="stat-icon">&#x21A9;</div><div class="stat-label">Credit Notes</div><div class="stat-value" id="st-cn">AED 0</div><div class="stat-sub">Total issued</div></div>
+<div class="sc sc-yellow"><div class="stat-icon">&#x1F6D2;</div><div class="stat-label">Payable (LPO)</div><div class="stat-value" id="st-pay">AED 0</div><div class="stat-sub">Purchase orders</div></div>
+</div>
+<div class="stats-grid" style="grid-template-columns:repeat(4,1fr);">
+<div class="sc sc-grey"><div class="stat-icon">&#x1F4E6;</div><div class="stat-label">Delivery Notes</div><div class="stat-value" id="st-dn">0</div><div class="stat-sub">Total issued</div></div>
+<div class="sc sc-teal"><div class="stat-icon">&#x2705;</div><div class="stat-label">Payments In</div><div class="stat-value" id="st-paid">AED 0</div><div class="stat-sub">Total collected</div></div>
+<div class="sc sc-purple"><div class="stat-icon">&#x1F4CB;</div><div class="stat-label">Quotations</div><div class="stat-value" id="st-qtn">0</div><div class="stat-sub">Total issued</div></div>
+<div class="sc sc-black"><div class="stat-icon">&#x26A0;</div><div class="stat-label">Overdue</div><div class="stat-value" id="st-overdue">0</div><div class="stat-sub">Past due date</div></div>
+</div>
+<div class="card" style="margin-bottom:12px;">
+<div class="card-title">Recent Documents</div>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Doc#</th><th>Type</th><th>Party</th><th>Date</th><th>Amount</th><th>Payment</th><th>Action</th></tr></thead>
+<tbody id="dash-recent"></tbody>
+</table></div>
+</div>
+<div class="card">
+<div class="card-title">Party Balances</div>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Party</th><th>Type</th><th>Receivable</th><th>Paid</th><th>Balance</th></tr></thead>
+<tbody id="dash-parties"></tbody>
+</table></div>
+</div>
+</div>
+
+<!-- ==================== PAYMENTS ==================== -->
+
+<div class="section" id="sec-payments">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
+<div>
+<div style="font-size:22px;font-weight:800;">&#x1F4B3; Payments</div>
+<div style="font-size:12px;color:var(--text3);margin-top:2px;">Track invoice payments &mdash; when, how, and for which month</div>
+</div>
+<button class="btn btn-green" onclick="openPaymentModal()">+ Record Payment</button>
+</div>
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
+<div class="sc sc-teal"><div class="stat-icon">&#x2705;</div><div class="stat-label">Total Collected</div><div class="stat-value" id="pst-collected">AED 0</div></div>
+<div class="sc sc-yellow"><div class="stat-icon">&#x23F3;</div><div class="stat-label">Outstanding</div><div class="stat-value" id="pst-outstanding">AED 0</div></div>
+<div class="sc sc-red"><div class="stat-icon">&#x26A0;</div><div class="stat-label">Overdue Invoices</div><div class="stat-value" id="pst-overdue">0</div></div>
+</div>
+<div class="card" style="margin-top:14px;margin-bottom:14px;">
+<div class="card-title"><span class="ct-dot" style="background:#16a34a;"></span>Payment History</div>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Date</th><th>Invoice #</th><th>Party</th><th>Month</th><th>Amount Paid</th><th>Method</th><th>Reference</th><th>Notes</th><th></th></tr></thead>
+<tbody id="payments-list"></tbody>
+</table></div>
+</div>
+<div class="card">
+<div class="card-title"><span class="ct-dot" style="background:#dc2626;"></span>Unpaid / Partial Invoices</div>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Invoice #</th><th>Party</th><th>Date</th><th>Due Date</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th>Action</th></tr></thead>
+<tbody id="unpaid-list"></tbody>
+</table></div>
+</div>
+</div>
+
+<!-- ==================== SEARCH ==================== -->
+
+<div class="section" id="sec-search">
+<div style="font-size:20px;font-weight:800;color:var(--primary);margin-bottom:16px;">Global Search</div>
+<div class="search-wrap">
+<span class="search-icon">🔍</span>
+<input type="text" placeholder="Search by name, invoice#, date, amount, item..." oninput="globalSearch(this.value)" id="globalSearchInput">
+</div>
+<div id="searchResults"></div>
+</div>
+
+<!-- ==================== INVOICE ==================== -->
+
+<div class="section" id="sec-invoice">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+<div style="font-size:22px;font-weight:800;">&#x1F9FE; Tax Invoices</div>
+<button class="btn btn-primary" onclick="openDocModal('invoice')">+ New Invoice</button>
+</div>
+<div class="tabs">
+<div class="tab active" onclick="filterDocs('invoice','all',this)">All</div>
+<div class="tab" onclick="filterDocs('invoice','cash',this)">Cash</div>
+<div class="tab" onclick="filterDocs('invoice','credit',this)">Credit</div>
+</div>
+<div id="invoice-list"></div>
+</div>
+
+<!-- ==================== QUOTATION ==================== -->
+
+<div class="section" id="sec-quotation">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+<div style="font-size:22px;font-weight:800;">&#x1F4CB; Quotations</div>
+<button class="btn btn-primary" onclick="openDocModal('quotation')">+ New Quotation</button>
+</div>
+<div id="quotation-list"></div>
+</div>
+
+<!-- ==================== CREDIT NOTE ==================== -->
+
+<div class="section" id="sec-creditnote">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+<div style="font-size:22px;font-weight:800;">&#x21A9; Credit Notes</div>
+<button class="btn btn-primary" onclick="openDocModal('creditnote')">+ New Credit Note</button>
+</div>
+<div id="creditnote-list"></div>
+</div>
+
+<!-- ==================== LPO ==================== -->
+
+<div class="section" id="sec-lpo">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+<div style="font-size:22px;font-weight:800;">&#x1F6D2; LPO / Purchase Orders</div>
+<button class="btn btn-primary" onclick="openDocModal('lpo')">+ New LPO</button>
+</div>
+<div id="lpo-list"></div>
+</div>
+
+<!-- ==================== DELIVERY NOTE ==================== -->
+
+<div class="section" id="sec-delivery">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+<div style="font-size:22px;font-weight:800;">&#x1F4E6; Delivery Notes</div>
+<button class="btn btn-primary" onclick="openDocModal('delivery')">+ New Delivery Note</button>
+</div>
+<div id="delivery-list"></div>
+</div>
+
+<!-- ==================== STATEMENT ==================== -->
+
+<div class="section" id="sec-statement">
+<div style="font-size:20px;font-weight:800;color:var(--primary);margin-bottom:16px;">Statement of Account</div>
+<div class="card" style="margin-bottom:14px;">
+<div class="form-row cols-2">
+<div><label>Select Party</label>
+<select id="stmt-party" onchange="loadStatement()">
+<option value="">-- Select Party --</option>
+</select>
+</div>
+<div><label>Date Range</label>
+<div style="display:flex;gap:6px;">
+<input type="date" id="stmt-from" onchange="loadStatement()">
+<input type="date" id="stmt-to" onchange="loadStatement()">
+</div>
+</div>
+</div>
+</div>
+<div id="statement-output"></div>
+</div>
+
+<!-- ==================== PARTIES ==================== -->
+
+<div class="section" id="sec-parties">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+<div style="font-size:22px;font-weight:800;">&#x1F465; Parties</div>
+<button class="btn btn-primary" onclick="openPartyModal()">+ Add Party</button>
+</div>
+<div class="tabs">
+<div class="tab active" onclick="filterParties('all',this)">All</div>
+<div class="tab" onclick="filterParties('customer',this)">Customers</div>
+<div class="tab" onclick="filterParties('supplier',this)">Suppliers</div>
+</div>
+<div id="party-list"></div>
+</div>
+
+<!-- ==================== DESCRIPTIONS ==================== -->
+
+<div class="section" id="sec-descriptions">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+<div style="font-size:22px;font-weight:800;">&#x1F4DD; Item Descriptions</div>
+<button class="btn btn-primary" onclick="openDescModal()">+ Add Item</button>
+</div>
+<div id="desc-list"></div>
+</div>
+
+<!-- ==================== SETTINGS ==================== -->
+
+<div class="section" id="sec-settings">
+<div style="font-size:22px;font-weight:800;margin-bottom:16px;">&#x2699; Company Settings</div>
+<div class="card">
+<div class="card-title">Company Information</div>
+<div class="form-row cols-1"><div><label>Company Name</label><input type="text" id="s-name" value="Qatar Al Nahda Transport LLC"></div></div>
+<div class="form-row cols-2">
+<div><label>Address Line 1</label><input type="text" id="s-addr1" placeholder="P.O. Box, Street"></div>
+<div><label>Address Line 2</label><input type="text" id="s-addr2" placeholder="City, Country"></div>
+</div>
+<div class="form-row cols-2">
+<div><label>Phone</label><input type="text" id="s-phone" placeholder="+971..."></div>
+<div><label>Email</label><input type="text" id="s-email" placeholder="info@..."></div>
+</div>
+<div class="form-row cols-2">
+<div><label>TRN (Tax Registration No.)</label><input type="text" id="s-trn" placeholder="TRN Number"></div>
+<div><label>Default VAT %</label><input type="number" id="s-vat" placeholder="5" value="5"></div>
+</div>
+<div class="form-row cols-2">
+<div><label>Bank Name</label><input type="text" id="s-bank" placeholder="Bank name"></div>
+<div><label>Account Number</label><input type="text" id="s-acc" placeholder="Account No."></div>
+</div>
+<div class="form-row cols-2">
+<div><label>IBAN</label><input type="text" id="s-iban" placeholder="AE..."></div>
+<div><label>Currency</label><select id="s-curr"><option>AED</option><option>USD</option><option>QAR</option></select></div>
+</div>
+<div style="display:flex;gap:8px;margin-top:8px;">
+<button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+</div>
+</div>
+<div class="card" style="margin-top:14px;">
+<div class="card-title">Firebase Configuration</div>
+<div class="form-row cols-1">
+<div><label>Firebase Config JSON (paste your config object)</label>
+<textarea id="fb-config" rows="6" placeholder='{"apiKey":"...","authDomain":"...","projectId":"...","databaseURL":"..."}'></textarea>
+</div>
+</div>
+<button class="btn btn-primary" onclick="initFirebase()">Connect Firebase</button>
+<span id="fb-status" style="margin-left:10px;font-size:13px;color:var(--text3);">Not connected</span>
+</div>
+</div>
+
+</main>
+</div><!-- end flex -->
+</div><!-- end app -->
+
+<!-- ==================== PAYMENT MODAL ==================== -->
+
+<div class="modal-overlay" id="paymentModal">
+<div class="modal" style="max-width:560px;">
+<div class="modal-header">
+<div class="modal-title">&#x1F4B3; Record Payment</div>
+<button class="modal-close" onclick="closeModal('paymentModal')">&#x2715;</button>
+</div>
+<div class="modal-body">
+<div class="form-row cols-2">
+<div><label>Invoice #</label>
+<select id="pay-inv-id" onchange="onPayInvChange()"><option value="">-- Select Invoice --</option></select></div>
+<div><label>Payment Date</label><input type="date" id="pay-date"></div>
+</div>
+<div style="background:#0f172a;border-radius:8px;padding:12px;margin-bottom:12px;border:1px solid var(--border);display:none;" id="pay-inv-info">
+<div style="font-size:12px;color:var(--text2);">Party: <strong id="pi-party">-</strong></div>
+<div style="font-size:12px;color:var(--text2);margin-top:3px;">Invoice Total: <strong id="pi-total" style="color:#60a5fa;">-</strong></div>
+<div style="font-size:12px;color:var(--text2);margin-top:2px;">Already Paid: <strong id="pi-paid" style="color:#86efac;">-</strong></div>
+<div style="font-size:12px;color:var(--text2);margin-top:2px;">Balance Due: <strong id="pi-balance" style="color:#fca5a5;">-</strong></div>
+</div>
+<div class="form-row cols-2">
+<div><label>Amount Paid</label><input type="number" id="pay-amount" placeholder="0.00" step="0.01" min="0"></div>
+<div><label>Payment Method</label>
+<select id="pay-method">
+<option value="cash">&#x1F4B5; Cash</option>
+<option value="bank_transfer">&#x1F3E6; Bank Transfer</option>
+<option value="cheque">&#x1F4C4; Cheque</option>
+<option value="online">&#x1F4BB; Online / App</option>
+<option value="card">&#x1F4B3; Card</option>
+<option value="other">Other</option>
+</select></div>
+</div>
+<div class="form-row cols-2">
+<div><label>Reference / Cheque No.</label><input type="text" id="pay-ref" placeholder="Txn / Ref No."></div>
+<div><label>For Which Month</label><input type="month" id="pay-month"></div>
+</div>
+<div class="form-row cols-1"><div><label>Notes</label><input type="text" id="pay-notes" placeholder="Payment remarks..."></div></div>
+</div>
+<div class="modal-footer">
+<button class="btn btn-gray" onclick="closeModal('paymentModal')">Cancel</button>
+<button class="btn btn-green" onclick="savePayment()">Save Payment</button>
+</div>
+</div>
+</div>
+
+<!-- ==================== DOC MODAL ==================== -->
+
+<div class="modal-overlay" id="docModal">
+<div class="modal">
+<div class="modal-header">
+<div class="modal-title" id="docModal-title">New Invoice</div>
+<button class="modal-close" onclick="closeModal('docModal')">✕</button>
+</div>
+<div class="modal-body">
+<div class="form-row cols-2">
+<div><label>Document #</label><input type="text" id="doc-num" placeholder="Auto-generated"></div>
+<div><label>Date</label><input type="date" id="doc-date"></div>
+</div>
+<div class="form-row cols-2" id="doc-party-row">
+<div><label id="doc-party-label">Customer</label>
+<select id="doc-party">
+<option value="">-- Select --</option>
+</select>
+</div>
+<div id="doc-type-wrap"><label>Type</label>
+<select id="doc-type">
+<option value="cash">Cash</option>
+<option value="credit">Credit</option>
+</select>
+</div>
+</div>
+<div class="form-row cols-2" id="doc-vehicle-row">
+<div><label>Vehicle Number</label><input type="text" id="doc-vehicle" placeholder="e.g. Dubai B 12345"></div>
+<div id="doc-due-wrap"><label>Due Date</label><input type="date" id="doc-due"></div>
+</div>
+<div class="form-row cols-1">
+<div><label>Notes / Remarks</label><textarea id="doc-notes" placeholder="Optional notes..." rows="2" style="resize:vertical;min-height:52px;"></textarea></div>
+</div>
+
+<!-- LINE ITEMS HEADER -->
+
+<div id="line-items-header" style="margin:14px 0 6px;">
+<div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:6px;">Line Items</div>
+<!-- Description chips -->
+<div id="desc-chips" style="display:flex;flex-wrap:wrap;gap:0;margin-bottom:10px;"></div>
+<div class="line-items-scroll"><div class="line-items-scroll-inner">
+<div id="line-items-col-hdr" style="padding:0 2px;"></div>
+<div id="line-items-container"></div>
+</div></div>
+</div>
+<button class="btn btn-outline btn-sm" style="margin-top:6px;" onclick="addLineItem()">+ Add Line</button>
+
+<!-- TOTALS -->
+
+<div class="totals-box" id="doc-totals-box" style="margin-top:14px;">
+<div class="totals-row"><span>Subtotal</span><span id="t-sub">AED 0.00</span></div>
+<div class="totals-row" id="t-vat-row"><span>VAT (<span id="t-vat-pct">5</span>%)</span><span id="t-vat">AED 0.00</span></div>
+<div class="totals-row grand"><span>Total (incl. VAT)</span><span id="t-grand">AED 0.00</span></div>
+</div>
+
+</div>
+<div class="modal-footer">
+<button class="btn btn-gray" onclick="closeModal('docModal')">Cancel</button>
+<button class="btn btn-success" onclick="saveDoc()">Save</button>
+<button class="btn btn-primary" onclick="saveAndPrint()">Save & Print</button>
+</div>
+</div>
+</div>
+
+<!-- ==================== PARTY MODAL ==================== -->
+
+<div class="modal-overlay" id="partyModal">
+<div class="modal">
+<div class="modal-header">
+<div class="modal-title" id="partyModal-title">Add Party</div>
+<button class="modal-close" onclick="closeModal('partyModal')">✕</button>
+</div>
+<div class="modal-body">
+<div class="form-row cols-1"><div><label>Party Name *</label><input type="text" id="p-name" placeholder="Customer / Supplier name"></div></div>
+<div class="form-row cols-2">
+<div><label>Type</label>
+<select id="p-type">
+<option value="customer">Customer</option>
+<option value="supplier">Supplier</option>
+<option value="both">Both</option>
+</select>
+</div>
+<div><label>VAT %</label><input type="number" id="p-vat" placeholder="5" value="5"></div>
+</div>
+<div class="form-row cols-2">
+<div><label>TRN (Tax Reg. No.)</label><input type="text" id="p-trn" placeholder="TRN Number"></div>
+<div><label>Phone</label><input type="text" id="p-phone" placeholder="Phone"></div>
+</div>
+<div class="form-row cols-1"><div><label>Address</label><input type="text" id="p-addr" placeholder="Address"></div></div>
+<div class="form-row cols-1"><div><label>Email</label><input type="text" id="p-email" placeholder="Email"></div></div>
+</div>
+<div class="modal-footer">
+<button class="btn btn-gray" onclick="closeModal('partyModal')">Cancel</button>
+<button class="btn btn-primary" onclick="saveParty()">Save Party</button>
+</div>
+</div>
+</div>
+
+<!-- ==================== DESC MODAL ==================== -->
+
+<div class="modal-overlay" id="descModal">
+<div class="modal">
+<div class="modal-header">
+<div class="modal-title" id="descModal-title">Add Item Description</div>
+<button class="modal-close" onclick="closeModal('descModal')">✕</button>
+</div>
+<div class="modal-body">
+<div class="form-row cols-1"><div><label>Description *</label><input type="text" id="d-name" placeholder="e.g. Salt Water Tanker 10,000L"></div></div>
+<div class="form-row cols-2">
+<div><label>Category</label>
+<select id="d-cat">
+<option value="sweet_water">Sweet Water</option>
+<option value="salt_water">Salt Water</option>
+<option value="tanker">Tanker Service</option>
+<option value="other">Other</option>
+</select>
+</div>
+<div><label>Default Unit</label>
+<select id="d-unit">
+<option>Load</option>
+<option>Trip</option>
+<option>Tanker</option>
+<option>Gallon</option>
+<option>Kg</option>
+<option>Nos</option>
+<option>Job</option>
+</select>
+</div>
+</div>
+<div class="form-row cols-1"><div><label>Default Unit Price (AED)</label><input type="number" id="d-price" placeholder="0.00" step="0.01"></div></div>
+</div>
+<div class="modal-footer">
+<button class="btn btn-gray" onclick="closeModal('descModal')">Cancel</button>
+<button class="btn btn-primary" onclick="saveDesc()">Save Item</button>
+</div>
+</div>
+</div>
+
+<!-- ==================== VIEW DOC MODAL ==================== -->
+
+<div class="modal-overlay" id="viewModal">
+<div class="modal">
+<div class="modal-header">
+<div class="modal-title" id="viewModal-title">Document Details</div>
+<button class="modal-close" onclick="closeModal('viewModal')">✕</button>
+</div>
+<div class="modal-body" id="viewModal-body"></div>
+<div class="modal-footer">
+<button class="btn btn-gray" onclick="closeModal('viewModal')">Close</button>
+<button class="btn btn-green" id="viewModal-pay-btn" style="display:none;">Record Payment</button>
+<button class="btn btn-warn" id="viewModal-edit-btn">Edit</button>
+<button class="btn btn-primary" id="viewModal-print-btn">Print</button>
+</div>
+</div>
+</div>
+
+<!-- ==================== CONFIRM MODAL ==================== -->
+
+<div class="modal-overlay" id="confirmModal">
+<div class="modal" style="max-width:380px;">
+<div class="modal-header"><div class="modal-title">Confirm Delete</div><button class="modal-close" onclick="closeModal('confirmModal')">✕</button></div>
+<div class="modal-body"><div id="confirm-msg" style="font-size:14px;color:var(--text2);">Are you sure?</div></div>
+<div class="modal-footer">
+<button class="btn btn-gray" onclick="closeModal('confirmModal')">Cancel</button>
+<button class="btn btn-danger" id="confirm-yes">Delete</button>
+</div>
+</div>
+</div>
+
+<script>
+// ===================== STATE =====================
+let db = null;
+let fbConnected = false;
+let currentSection = 'dashboard';
+let currentDocType = 'invoice';
+let editingDocId = null;
+let editingPartyId = null;
+let editingDescId = null;
+let currentFilter = 'all';
+let deleteCallback = null;
+
+const COMPANY_KEY = 'qan_company';
+const PARTIES_KEY = 'qan_parties';
+const DOCS_KEY = 'qan_docs';
+const DESCS_KEY = 'qan_descs';
+const SETTINGS_KEY = 'qan_settings';
+
+// ===================== INIT =====================
+document.addEventListener('DOMContentLoaded',function(){
+document.getElementById('dash-date').textContent=new Date().toLocaleDateString('en-AE',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+loadSettings();renderDashboard();renderPartyList();renderDescList();
+['invoice','quotation','creditnote','lpo','delivery'].forEach(function(t){renderDocList(t);});
+populatePartySelects();populateStmtParty();renderPayments();
+});
+
+// ===================== LOCAL STORAGE =====================
+function getData(key){ try{ return JSON.parse(localStorage.getItem(key))||[]; }catch(e){ return []; } }
+function setData(key,val){ localStorage.setItem(key, JSON.stringify(val)); syncFirebase(key,val); }
+function getObj(key){ try{ return JSON.parse(localStorage.getItem(key))||{}; }catch(e){ return {}; } }
+function setObj(key,val){ localStorage.setItem(key, JSON.stringify(val)); }
+function genId(){ return Date.now().toString(36)+Math.random().toString(36).substr(2,5); }
+function genDocNum(type){
+const prefixes={invoice:'INV',quotation:'QTN',creditnote:'CN',lpo:'LPO',delivery:'DN'};
+const p=prefixes[type]||'DOC';
+const docs=getData(DOCS_KEY).filter(d=>d.type===type);
+return p+'-'+(1001+docs.length);
+}
+
+// ===================== FIREBASE =====================
+function initFirebase(){
+const cfg = document.getElementById('fb-config').value.trim();
+if(!cfg){ toast('Paste Firebase config first','warn'); return; }
+try {
+const config = JSON.parse(cfg);
+if(!window.firebase){
+toast('Firebase SDK not loaded. Add Firebase scripts to use live sync.','warn');
+document.getElementById('fb-status').textContent = 'SDK not loaded';
+return;
+}
+if(!firebase.apps.length) firebase.initializeApp(config);
+db = firebase.firestore ? firebase.firestore() : null;
+fbConnected = true;
+document.getElementById('fb-status').textContent = '✅ Connected';
+toast('Firebase connected!','success');
+} catch(e){ toast('Invalid config: '+e.message,'danger'); }
+}
+function syncFirebase(key,val){
+if(!fbConnected||!db) return;
+db.collection('qan').doc(key).set({data: JSON.stringify(val)}).catch(()=>{});
+}
+
+// ===================== NAV =====================
+function nav(section){
+document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
+document.getElementById('sec-'+section).classList.add('active');
+document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+var navMap={dashboard:"dashboard",payments:"payments",search:"search",invoice:"tax invoice",quotation:"quotation",creditnote:"credit note",lpo:"lpo",delivery:"delivery",statement:"statement",parties:"parties",descriptions:"item",settings:"settings"};
+var txt=navMap[section]||section;
+document.querySelectorAll('.nav-item').forEach(function(n){if(n.textContent.trim().toLowerCase().indexOf(txt)>=0)n.classList.add('active');});
+currentSection=section;
+if(window.innerWidth<=700)closeSidebar();
+if(section==='dashboard')renderDashboard();
+if(section==='payments')renderPayments();
+if(['invoice','quotation','creditnote','lpo','delivery'].indexOf(section)>=0)renderDocList(section);
+}
+
+function toggleSidebar(){
+const sidebar = document.getElementById('sidebar');
+const main = document.getElementById('main');
+if (window.innerWidth <= 700) {
+sidebar.classList.toggle('open');
+} else {
+sidebar.classList.toggle('hidden');
+main.classList.toggle('full');
+}
+}
+function closeSidebar(){
+document.getElementById('sidebar').classList.remove('open');
+}
+
+// ===================== SETTINGS =====================
+function loadSettings(){
+const s=getObj(SETTINGS_KEY);
+if(s.name) document.getElementById('s-name').value=s.name;
+if(s.addr1) document.getElementById('s-addr1').value=s.addr1;
+if(s.addr2) document.getElementById('s-addr2').value=s.addr2;
+if(s.phone) document.getElementById('s-phone').value=s.phone;
+if(s.email) document.getElementById('s-email').value=s.email;
+if(s.trn) document.getElementById('s-trn').value=s.trn;
+if(s.vat) document.getElementById('s-vat').value=s.vat;
+if(s.bank) document.getElementById('s-bank').value=s.bank;
+if(s.acc) document.getElementById('s-acc').value=s.acc;
+if(s.iban) document.getElementById('s-iban').value=s.iban;
+if(s.curr) document.getElementById('s-curr').value=s.curr;
+if(s.fbConfig) document.getElementById('fb-config').value=s.fbConfig;
+}
+function saveSettings(){
+const s={
+name:document.getElementById('s-name').value,
+addr1:document.getElementById('s-addr1').value,
+addr2:document.getElementById('s-addr2').value,
+phone:document.getElementById('s-phone').value,
+email:document.getElementById('s-email').value,
+trn:document.getElementById('s-trn').value,
+vat:document.getElementById('s-vat').value,
+bank:document.getElementById('s-bank').value,
+acc:document.getElementById('s-acc').value,
+iban:document.getElementById('s-iban').value,
+curr:document.getElementById('s-curr').value,
+fbConfig:document.getElementById('fb-config').value,
+};
+setObj(SETTINGS_KEY,s);
+toast('Settings saved!','success');
+}
+function getSettings(){ return getObj(SETTINGS_KEY); }
+function getCurr(){ return getSettings().curr||'AED'; }
+function getDefaultVat(){ return parseFloat(getSettings().vat)||5; }
+function fmt(n){ return getCurr()+' '+parseFloat(n||0).toFixed(2); }
+
+
+// ===================== PAYMENTS KEY =====================
+var PAYMENTS_KEY='qan_payments';
+
+function renderPayments(){
+var payments=getData(PAYMENTS_KEY),docs=getData(DOCS_KEY);
+var invoices=docs.filter(function(d){return d.type==="invoice";});
+var totalCollected=payments.reduce(function(s,p){return s+(parseFloat(p.amount)||0);},0);
+var totalInv=invoices.reduce(function(s,d){return s+(d.grandTotal||0);},0);
+var today=new Date().toISOString().split("T")[0];
+var overdue=invoices.filter(function(d){return d.docType==="credit"&&d.due&&d.due<today&&getPayStatus(d)!=="paid";}).length;
+document.getElementById("pst-collected").textContent=fmt(totalCollected);
+document.getElementById("pst-outstanding").textContent=fmt(Math.max(0,totalInv-totalCollected));
+document.getElementById("pst-overdue").textContent=overdue;
+var sorted=payments.slice().sort(function(a,b){return (b.date||"").localeCompare(a.date||"");});
+document.getElementById("payments-list").innerHTML=sorted.length?sorted.map(function(p){var doc=docs.find(function(d){return d.id===p.docId;})||{};return"<tr><td>"+(p.date||"-")+"</td><td><strong style=\"color:#60a5fa;font-family:var(--mono)\">"+escH(doc.num||"-")+"</strong></td><td>"+escH(doc.partyName||"-")+"</td><td>"+(p.month||"-")+"</td><td style=\"color:#86efac;font-family:var(--mono)\"><strong>"+fmt(p.amount)+"</strong></td><td>"+methodLabel(p.method)+"</td><td style=\"font-family:var(--mono);font-size:11px\">"+(p.ref||"-")+"</td><td>"+(p.notes||"-")+"</td><td><button class=\"btn btn-danger btn-sm\" onclick=\"delPayment('"+p.id+"')\">&#x2715;</button></td></tr>";}).join(""):"<tr><td colspan=\"9\" class=\"empty\"><div class=\"empty-icon\">&#x1F4B3;</div><div class=\"empty-text\">No payments recorded yet</div></td></tr>";
+var unpaid=invoices.filter(function(d){return getPayStatus(d)!=="paid";}).sort(function(a,b){return(b.createdAt||0)-(a.createdAt||0);});
+document.getElementById("unpaid-list").innerHTML=unpaid.length?unpaid.map(function(d){var paid=getInvPaidAmt(d.id),bal=d.grandTotal-paid,isOD=d.docType==="credit"&&d.due&&d.due<today;return"<tr style=\""+(isOD?"background:rgba(220,38,38,.05);":"")+"\" ><td><strong style=\"color:#60a5fa;font-family:var(--mono)\">"+d.num+"</strong></td><td>"+escH(d.partyName||"-")+"</td><td>"+(d.date||"-")+"</td><td style=\"color:"+(isOD?"#fca5a5":"var(--text2)")+"\">"+(d.due||"-")+(isOD?" &#x26A0;":"")+"</td><td style=\"font-family:var(--mono)\">"+fmt(d.grandTotal)+"</td><td style=\"color:#86efac;font-family:var(--mono)\">"+fmt(paid)+"</td><td style=\"color:#fca5a5;font-family:var(--mono)\"><strong>"+fmt(bal)+"</strong></td><td>"+payBadge(d)+"</td><td><button class=\"btn btn-success btn-sm\" onclick=\"openPayForDoc('"+d.id+"')\">Pay</button></td></tr>";}).join(""):"<tr><td colspan=\"9\" class=\"empty\"><div class=\"empty-icon\">&#x2705;</div><div class=\"empty-text\">All invoices paid!</div></td></tr>";
+}
+
+
+
+function openPaymentModal(docId){
+var docs=getData(DOCS_KEY).filter(function(d){return d.type==="invoice";});
+var sel=document.getElementById("pay-inv-id");
+sel.innerHTML='<option value="">-- Select Invoice --</option>';
+docs.sort(function(a,b){return(b.createdAt||0)-(a.createdAt||0);}).forEach(function(d){var bal=d.grandTotal-getInvPaidAmt(d.id);sel.innerHTML+='<option value="'+d.id+'">'+escH(d.num)+' — '+escH(d.partyName||'')+" (Bal: "+fmt(bal)+")</option>";});
+if(docId)sel.value=docId;
+document.getElementById("pay-date").value=new Date().toISOString().split("T")[0];
+var now=new Date();document.getElementById("pay-month").value=now.getFullYear()+"-"+(String(now.getMonth()+1).padStart(2,"0"));
+document.getElementById("pay-amount").value="";document.getElementById("pay-method").value="cash";document.getElementById("pay-ref").value="";document.getElementById("pay-notes").value="";
+onPayInvChange();openModal("paymentModal");
+}
+
+function openPayForDoc(id){closeModal("viewModal");openPaymentModal(id);}
+
+function onPayInvChange(){
+var docId=document.getElementById("pay-inv-id").value,info=document.getElementById("pay-inv-info");
+if(!docId){info.style.display="none";return;}
+var doc=getData(DOCS_KEY).find(function(d){return d.id===docId;});
+if(!doc){info.style.display="none";return;}
+var paid=getInvPaidAmt(docId),bal=doc.grandTotal-paid;
+document.getElementById("pi-party").textContent=doc.partyName||"-";
+document.getElementById("pi-total").textContent=fmt(doc.grandTotal);
+document.getElementById("pi-paid").textContent=fmt(paid);
+document.getElementById("pi-balance").textContent=fmt(bal);
+document.getElementById("pay-amount").value=bal>0?bal.toFixed(2):"";
+info.style.display="block";
+}
+
+function savePayment(){
+var docId=document.getElementById("pay-inv-id").value,date=document.getElementById("pay-date").value,amount=parseFloat(document.getElementById("pay-amount").value)||0;
+if(!docId){toast("Select an invoice","warn");return;}if(!amount||amount<=0){toast("Enter valid amount","warn");return;}
+var p={id:genId(),docId:docId,date:date,amount:amount,method:document.getElementById("pay-method").value,ref:document.getElementById("pay-ref").value,month:document.getElementById("pay-month").value,notes:document.getElementById("pay-notes").value,createdAt:Date.now()};
+var payments=getData(PAYMENTS_KEY);payments.push(p);setData(PAYMENTS_KEY,payments);
+closeModal("paymentModal");renderPayments();renderDashboard();renderDocList(currentDocType);toast("Payment recorded!","success");
+}
+
+function delPayment(id){confirmDelete(function(){setData(PAYMENTS_KEY,getData(PAYMENTS_KEY).filter(function(p){return p.id!==id;}));renderPayments();renderDashboard();toast("Deleted","success");});}
+
+// ===================== DASHBOARD =====================
+function renderDashboard(){
+var docs=getData(DOCS_KEY),parties=getData(PARTIES_KEY),payments=getData(PAYMENTS_KEY);
+var invoices=docs.filter(function(d){return d.type==="invoice";});
+var cns=docs.filter(function(d){return d.type==="creditnote";});
+var lpos=docs.filter(function(d){return d.type==="lpo";});
+var dns=docs.filter(function(d){return d.type==="delivery";});
+var qtns=docs.filter(function(d){return d.type==="quotation";});
+var totalPaid=payments.reduce(function(s,p){return s+(parseFloat(p.amount)||0);},0);
+var today=new Date().toISOString().split("T")[0];
+var overdue=invoices.filter(function(d){return d.docType==="credit"&&d.due&&d.due<today&&getPayStatus(d)!=="paid";}).length;
+document.getElementById("st-sales").textContent=fmt(invoices.reduce(function(s,d){return s+(d.grandTotal||0);},0));
+document.getElementById("st-recv").textContent=fmt(invoices.filter(function(d){return d.docType==="credit";}).reduce(function(s,d){return s+(d.grandTotal||0);},0));
+document.getElementById("st-cn").textContent=fmt(cns.reduce(function(s,d){return s+(d.grandTotal||0);},0));
+document.getElementById("st-pay").textContent=fmt(lpos.reduce(function(s,d){return s+(d.grandTotal||0);},0));
+document.getElementById("st-dn").textContent=dns.length;
+document.getElementById("st-paid").textContent=fmt(totalPaid);
+document.getElementById("st-qtn").textContent=qtns.length;
+document.getElementById("st-overdue").textContent=overdue;
+var recent=docs.slice().sort(function(a,b){return b.createdAt-a.createdAt;}).slice(0,8);
+document.getElementById("dash-recent").innerHTML=recent.length?recent.map(function(d){return"<tr><td><strong style=\"color:var(--primary);font-family:var(--mono)\">"+escH(d.num)+"</strong></td><td><span class=\"badge "+docBadgeClass(d.type)+"\">"+docTypeLabel(d.type)+"</span></td><td>"+escH(d.partyName||"-")+"</td><td>"+(d.date||"-")+"</td><td style=\"font-family:var(--mono)\"><strong>"+fmt(d.grandTotal)+"</strong></td><td>"+(payBadge(d)||"-")+"</td><td><button class=\"btn btn-outline btn-sm\" onclick=\"viewDoc('"+d.id+"')\" >View</button></td></tr>";}).join(""):"<tr><td colspan=\"7\" class=\"empty\"><div class=\"empty-icon\">📄</div><div class=\"empty-text\">No documents yet</div></td></tr>";
+var partyMap={};
+docs.forEach(function(d){if(!d.partyId)return;if(!partyMap[d.partyId])partyMap[d.partyId]={name:d.partyName,recv:0};if(d.type==="invoice")partyMap[d.partyId].recv+=(d.grandTotal||0);});
+document.getElementById("dash-parties").innerHTML=Object.keys(partyMap).length?Object.keys(partyMap).map(function(k){var pp=parties.find(function(x){return x.id===k;})||{};var paidAmt=payments.filter(function(pm){var doc=docs.find(function(d){return d.id===pm.docId;});return doc&&doc.partyId===k;}).reduce(function(s,pm){return s+(parseFloat(pm.amount)||0);},0);var bal=partyMap[k].recv-paidAmt;return"<tr><td><strong>"+escH(partyMap[k].name)+"</strong></td><td><span class=\"badge "+(pp.type==="supplier"?"badge-orange":"badge-blue")+"\">"+(pp.type||"customer")+"</span></td><td style=\"font-family:var(--mono)\">"+fmt(partyMap[k].recv)+"</td><td style=\"font-family:var(--mono);color:#86efac\">"+fmt(paidAmt)+"</td><td style=\"font-family:var(--mono);color:"+(bal>0?"#fca5a5":"#86efac")+"\">" +fmt(bal)+"</td></tr>";}).join(""):"<tr><td colspan=\"5\" class=\"empty\"><div class=\"empty-icon\">&#x1F465;</div><div class=\"empty-text\">No party data</div></td></tr>";
+}
+
+function docBadgeClass(t){ return {invoice:'badge-blue',quotation:'badge-green',creditnote:'badge-red',lpo:'badge-orange',delivery:'badge-gray'}[t]||'badge-gray'; }
+function docTypeLabel(t){ return {invoice:'Invoice',quotation:'Quotation',creditnote:'Credit Note',lpo:'LPO',delivery:'Delivery Note'}[t]||t; }
+
+// ===================== DOC MODAL =====================
+let lineItems=[];
+
+const DOC_CONFIG = {
+invoice: { label:'Invoice', partyLabel:'Customer', showType:true, showVehicle:true, showVat:true, showDue:true, partyTypes:['customer','both'] },
+quotation: { label:'Quotation', partyLabel:'Customer', showType:false, showVehicle:false, showVat:true, showDue:false, partyTypes:['customer','both'] },
+creditnote:{ label:'Credit Note', partyLabel:'Customer', showType:false, showVehicle:true, showVat:true, showDue:false, partyTypes:['customer','both'] },
+lpo: { label:'Purchase Order',partyLabel:'Supplier', showType:false, showVehicle:false, showVat:true, showDue:true, partyTypes:['supplier','both'] },
+delivery: { label:'Delivery Note', partyLabel:'Customer', showType:false, showVehicle:true, showVat:false, showDue:false, partyTypes:['customer','both'] },
+};
+
+function openDocModal(type, existingDoc=null){
+currentDocType=type;
+editingDocId=existingDoc?existingDoc.id:null;
+const cfg=DOC_CONFIG[type];
+document.getElementById('docModal-title').textContent=(existingDoc?'Edit ':'New ')+cfg.label;
+document.getElementById('doc-party-label').textContent=cfg.partyLabel;
+document.getElementById('doc-type-wrap').style.display=cfg.showType?'block':'none';
+document.getElementById('doc-vehicle-row').style.display=cfg.showVehicle?'grid':'none';
+document.getElementById('doc-due-wrap').style.display=cfg.showDue?'block':'none';
+document.getElementById('doc-totals-box').style.display=cfg.showVat?'block':'none';
+document.getElementById('t-vat-row').style.display=cfg.showVat?'flex':'none';
+
+// Populate party select
+const parties=getData(PARTIES_KEY);
+const sel=document.getElementById('doc-party');
+sel.innerHTML='<option value="">-- Select '+cfg.partyLabel+' --</option>';
+parties.filter(p=>cfg.partyTypes.includes(p.type)).forEach(p=>{
+sel.innerHTML+=`<option value="${p.id}">${p.name}</option>`;
+});
+
+// Desc chips
+renderDescChips();
+
+// Set column headers
+const isDelivery=type==='delivery';
+document.getElementById('line-items-col-hdr').innerHTML=isDelivery
+? '<div class="li-col-hdr dn" style="font-size:11px;font-weight:700;color:var(--text3);padding:0 2px;"><span>Sr</span><span>Description</span><span>Qty</span><span></span></div>'
+: '<div class="li-col-hdr" style="font-size:11px;font-weight:700;color:var(--text3);padding:0 2px;"><span>Sr</span><span>Description</span><span>Qty</span><span>Unit</span><span>Unit Price</span><span>Total</span><span></span></div>';
+
+// Date default
+document.getElementById('doc-date').value=existingDoc?existingDoc.date:new Date().toISOString().split('T')[0];
+document.getElementById('doc-num').value=existingDoc?existingDoc.num:genDocNum(type);
+document.getElementById('doc-vehicle').value=existingDoc?(existingDoc.vehicle||''):'';
+document.getElementById('doc-notes').value=existingDoc?(existingDoc.notes||''):'';
+document.getElementById('doc-due').value=existingDoc?(existingDoc.due||''):'';
+
+if(existingDoc){
+document.getElementById('doc-party').value=existingDoc.partyId||'';
+document.getElementById('doc-type').value=existingDoc.docType||'cash';
+lineItems=existingDoc.items?JSON.parse(JSON.stringify(existingDoc.items)):[];
+} else {
+lineItems=[];
+addLineItem();
+}
+
+renderLineItems();
+calcTotals();
+openModal('docModal');
+}
+
+function renderDescChips(){
+const descs=getData(DESCS_KEY);
+const chips=document.getElementById('desc-chips');
+if(!descs.length){ chips.innerHTML='<span style="font-size:12px;color:var(--text3);">No items in library. Add from <b>Item Descriptions</b>.</span>'; return; }
+chips.innerHTML=descs.map(d=>`<span class="desc-chip" onclick="insertDesc('${d.id}')">${d.name}</span>`).join('');
+}
+
+function insertDesc(id){
+const descs=getData(DESCS_KEY);
+const d=descs.find(x=>x.id===id);
+if(!d) return;
+// Fill first empty row if exists, else push new row
+const emptyIdx=lineItems.findIndex(it=>!it.desc||it.desc.trim()==='');
+const newItem={desc:d.name, qty:1, unit:d.unit||'Load', price:parseFloat(d.price)||0, total:parseFloat(d.price)||0};
+if(emptyIdx>=0){
+lineItems[emptyIdx]=newItem;
+} else {
+lineItems.push(newItem);
+}
+renderLineItems();
+calcTotals();
+}
+
+function addLineItem(){
+const isDelivery=currentDocType==='delivery';
+lineItems.push({desc:'', qty:1, unit:'Load', price:0, total:0});
+renderLineItems();
+}
+
+function renderLineItems(){
+const isDelivery=currentDocType==='delivery';
+const c=document.getElementById('line-items-container');
+c.innerHTML=lineItems.map((item,i)=>{
+if(isDelivery) return `
+<div class="line-item-row dn">
+<span class="line-item-num">${i+1}</span>
+<input class="li-input" type="text" value="${escH(item.desc)}" placeholder="Description" oninput="updateItem(${i},'desc',this.value)">
+<input class="li-input" type="number" value="${item.qty}" min="0" step="any" oninput="updateItem(${i},'qty',this.value)" style="text-align:center;">
+<button class="li-del" onclick="removeItem(${i})">✕</button>
+</div>`;
+return `
+<div class="line-item-row">
+<span class="line-item-num">${i+1}</span>
+<input class="li-input" type="text" value="${escH(item.desc)}" placeholder="Description" oninput="updateItem(${i},'desc',this.value)">
+<input class="li-input" type="number" value="${item.qty}" min="0" step="any" oninput="updateItem(${i},'qty',this.value)" style="text-align:center;">
+<select class="li-input" onchange="updateItem(${i},'unit',this.value)">
+${['Load','Trip','Tanker','Gallon','Kg','Nos','Job'].map(u=>`<option ${item.unit===u?'selected':''}>${u}</option>`).join('')}
+</select>
+<input class="li-input" type="number" value="${item.price}" min="0" step="any" oninput="updateItem(${i},'price',this.value)" style="text-align:right;">
+<div class="li-total">${parseFloat(item.total||0).toFixed(2)}</div>
+<button class="li-del" onclick="removeItem(${i})">✕</button>
+</div>`;
+}).join('');
+}
+
+function updateItem(i,field,val){
+lineItems[i][field]=field==='desc'?val:parseFloat(val)||0;
+if(field==='qty'||field==='price'){
+lineItems[i].total=lineItems[i].qty*lineItems[i].price;
+// Only update the total display cell, not full re-render
+const rows=document.querySelectorAll('#line-items-container .line-item-row');
+if(rows[i]){
+const totalEl=rows[i].querySelector('.li-total');
+if(totalEl) totalEl.textContent=lineItems[i].total.toFixed(2);
+}
+}
+calcTotals();
+}
+
+function removeItem(i){
+lineItems.splice(i,1);
+renderLineItems();
+calcTotals();
+}
+
+function calcTotals(){
+const sub=lineItems.reduce((s,it)=>s+(it.total||0),0);
+const vatPct=getPartyVat();
+const vat=sub*vatPct/100;
+const grand=sub+vat;
+document.getElementById('t-sub').textContent=fmt(sub);
+document.getElementById('t-vat-pct').textContent=vatPct;
+document.getElementById('t-vat').textContent=fmt(vat);
+document.getElementById('t-grand').textContent=fmt(grand);
+return {sub,vat,grand,vatPct};
+}
+
+function getPartyVat(){
+const pid=document.getElementById('doc-party').value;
+const parties=getData(PARTIES_KEY);
+const p=parties.find(x=>x.id===pid);
+return p?parseFloat(p.vat||5):getDefaultVat();
+}
+
+document.getElementById('doc-party').addEventListener('change', calcTotals);
+
+function saveDoc(){
+const num=document.getElementById('doc-num').value.trim();
+const partyId=document.getElementById('doc-party').value;
+if(!num){ toast('Enter document number','warn'); return; }
+const parties=getData(PARTIES_KEY);
+const party=parties.find(p=>p.id===partyId)||{};
+const {sub,vat,grand,vatPct}=calcTotals();
+const isDelivery=currentDocType==='delivery';
+
+const doc={
+id: editingDocId||genId(),
+type: currentDocType,
+num, date: document.getElementById('doc-date').value,
+partyId, partyName: party.name||'',
+docType: document.getElementById('doc-type').value,
+vehicle: document.getElementById('doc-vehicle').value,
+due: document.getElementById('doc-due').value,
+notes: document.getElementById('doc-notes').value,
+items: JSON.parse(JSON.stringify(lineItems)),
+subtotal: sub, vatPct, vatAmt: vat, grandTotal: isDelivery?sub:grand,
+createdAt: editingDocId?(getData(DOCS_KEY).find(d=>d.id===editingDocId)||{}).createdAt||Date.now():Date.now(),
+};
+const docs=getData(DOCS_KEY);
+if(editingDocId){
+const idx=docs.findIndex(d=>d.id===editingDocId);
+if(idx>-1) docs[idx]=doc; else docs.push(doc);
+} else { docs.push(doc); }
+setData(DOCS_KEY,docs);
+closeModal('docModal');
+renderDocList(currentDocType);
+renderDashboard();
+populateStmtParty();
+toast('Document saved!','success');
+return doc;
+}
+
+function saveAndPrint(){
+const doc=saveDoc();
+if(doc) printDoc(doc);
+}
+
+// ===================== DOC LIST =====================
+function renderDocList(type, filter='all'){
+const listEl=document.getElementById(type+'-list');
+if(!listEl) return;
+let docs=getData(DOCS_KEY).filter(d=>d.type===type);
+if(filter==='cash') docs=docs.filter(d=>d.docType==='cash');
+if(filter==='credit') docs=docs.filter(d=>d.docType==='credit');
+docs=docs.sort((a,b)=>b.createdAt-a.createdAt);
+var typeColors={invoice:"#2563eb",quotation:"#ca8a04",creditnote:"#dc2626",lpo:"#6b7280",delivery:"#16a34a"};
+var tc=typeColors[type]||"#60a5fa";
+listEl.innerHTML=docs.length?'<div class="card"><div class="tbl-wrap"><table><thead><tr><th>Doc#</th><th>Party</th><th>Date</th><th>Amount</th>'+(type==="invoice"?"<th>Payment</th>":"")+'<th>Actions</th></tr></thead><tbody>'+docs.map(function(d){return'<tr><td><strong style="color:'+tc+';font-family:var(--mono)">'+escH(d.num)+'</strong></td><td>'+escH(d.partyName||"-")+'</td><td>'+(d.date||"-")+'</td><td style="font-family:var(--mono)"><strong>'+fmt(d.grandTotal)+'</strong></td>'+(type==="invoice"?"<td>"+(payBadge(d)||"-")+"</td>":"")+'<td style="display:flex;gap:4px;"><button class="btn btn-outline btn-sm" onclick="viewDoc(\''+d.id+'\')">View</button><button class="btn btn-warn btn-sm" onclick="editDoc(\''+d.id+'\')">Edit</button><button class="btn btn-primary btn-sm" onclick="printDocById(\''+d.id+'\')">Print</button>'+(type==="invoice"?'<button class="btn btn-success btn-sm" onclick="openPayForDoc(\''+d.id+'\')">Pay</button>':'')+'<button class="btn btn-danger btn-sm" onclick="deleteDoc(\''+d.id+'\')">Delete</button></td></tr>';}).join("")+'</tbody></table></div></div>':'<div class="card"><div class="empty"><div class="empty-icon">📄</div><div class="empty-text">No '+docTypeLabel(type)+' yet</div></div></div>';
+}
+
+function filterDocs(type,filter,el){
+document.querySelectorAll(`#sec-${type} .tab`).forEach(t=>t.classList.remove('active'));
+el.classList.add('active');
+renderDocList(type,filter);
+}
+
+function editDoc(id){
+const docs=getData(DOCS_KEY);
+const doc=docs.find(d=>d.id===id);
+if(!doc) return;
+closeModal('viewModal');
+openDocModal(doc.type, doc);
+}
+
+function deleteDoc(id){
+confirmDelete(()=>{
+const docs=getData(DOCS_KEY).filter(d=>d.id!==id);
+setData(DOCS_KEY,docs);
+renderDocList(currentDocType);
+renderDashboard();
+toast('Deleted','success');
+});
+}
+
+function viewDoc(id){
+const docs=getData(DOCS_KEY);
+const doc=docs.find(d=>d.id===id);
+if(!doc) return;
+document.getElementById('viewModal-title').textContent=docTypeLabel(doc.type)+' — '+doc.num;
+const isDelivery=doc.type==='delivery';
+let html=`<div style="margin-bottom:12px;">
+<div class="form-row cols-2">
+<div><label>Doc Number</label><div style="font-weight:700;">${doc.num}</div></div>
+<div><label>Date</label><div>${doc.date||'-'}</div></div>
+</div>
+<div class="form-row cols-2">
+<div><label>Party</label><div style="font-weight:700;">${doc.partyName||'-'}</div></div>
+${doc.vehicle?`<div><label>Vehicle</label><div>${doc.vehicle}</div></div>`:''}
+</div>
+${doc.notes?`<div style="margin-bottom:8px;"><label>Notes</label><div>${doc.notes}</div></div>`:''}
+</div>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Sr</th><th>Description</th><th>Qty</th>${!isDelivery?'<th>Unit</th><th>Unit Price</th><th>Total</th>':''}</tr></thead>
+<tbody>${(doc.items||[]).map((it,i)=>`<tr>
+<td>${i+1}</td><td>${it.desc}</td><td>${it.qty}</td>
+${!isDelivery?`<td>${it.unit||''}</td><td>${fmt(it.price)}</td><td><strong>${fmt(it.total)}</strong></td>`:''}
+</tr>`).join('')}</tbody>
+</table></div>`;
+if(!isDelivery) html+=`<div class="totals-box" style="margin-top:12px;">
+<div class="totals-row"><span>Subtotal</span><span>${fmt(doc.subtotal)}</span></div>
+<div class="totals-row"><span>VAT (${doc.vatPct||5}%)</span><span>${fmt(doc.vatAmt)}</span></div>
+<div class="totals-row grand"><span>Total (incl. VAT)</span><span>${fmt(doc.grandTotal)}</span></div>
+</div>`;
+document.getElementById('viewModal-body').innerHTML=html;
+document.getElementById('viewModal-edit-btn').onclick=function(){editDoc(id);};
+document.getElementById('viewModal-print-btn').onclick=function(){printDocById(id);};
+var payBtn=document.getElementById('viewModal-pay-btn');
+payBtn.style.display=doc.type==='invoice'?'inline-flex':'none';
+payBtn.onclick=function(){openPayForDoc(id);};
+openModal('viewModal');
+}
+
+// ===================== PRINT =====================
+function printDocById(id){var doc=getData(DOCS_KEY).find(function(d){return d.id===id;});if(doc)printDoc(doc);}
+
+function getInvPayments(id){return getData(PAYMENTS_KEY).filter(function(p){return p.docId===id;});}
+function getInvPaidAmt(id){return getInvPayments(id).reduce(function(s,p){return s+(parseFloat(p.amount)||0);},0);}
+function getPayStatus(doc){if(doc.type!=="invoice")return null;var paid=getInvPaidAmt(doc.id),total=doc.grandTotal||0;if(paid<=0)return"unpaid";if(paid>=total-0.01)return"paid";return"partial";}
+function payBadge(doc){var s=getPayStatus(doc);if(!s)return"";return{paid:'<span class="pay-paid">&#x2705; Paid</span>',partial:'<span class="pay-partial">&#x23F3; Partial</span>',unpaid:'<span class="pay-unpaid">&#x26A0; Unpaid</span>'}[s]||"";}
+function methodLabel(m){return{cash:"Cash",bank_transfer:"Bank Transfer",cheque:"Cheque",online:"Online",card:"Card",other:"Other"}[m]||m||"-";}
+
+function printDoc(doc){
+var s=getSettings(),co=s.name||"Qatar Al Nahda Transport LLC",curr=s.curr||"AED",html="";
+if(doc.type==="invoice") html=printInvoice(doc,s,co,curr);
+else if(doc.type==="quotation") html=printQuotation(doc,s,co,curr);
+else if(doc.type==="creditnote") html=printCreditNote(doc,s,co,curr);
+else if(doc.type==="lpo") html=printLPO(doc,s,co,curr);
+else if(doc.type==="delivery") html=printDelivery(doc,s,co,curr);
+document.getElementById("printArea").innerHTML=html;
+window.print();
+}
+
+// TAX INVOICE — Blue professional with payment tracking
+function printInvoice(doc,s,co,curr){
+var items=(doc.items||[]).map(function(it,i){return'<tr style="background:'+(i%2===0?"#f0f7ff":"#fff")+'"><td style="padding:9px 12px;border-bottom:1px solid #c7dcf5;text-align:center;color:#1e40af;font-weight:700;">'+(i+1)+'</td><td style="padding:9px 12px;border-bottom:1px solid #c7dcf5;">'+escH(it.desc)+'</td><td style="padding:9px 12px;border-bottom:1px solid #c7dcf5;text-align:center;">'+it.qty+'</td><td style="padding:9px 12px;border-bottom:1px solid #c7dcf5;text-align:center;">'+(it.unit||"")+'</td><td style="padding:9px 12px;border-bottom:1px solid #c7dcf5;text-align:right;">'+parseFloat(it.price||0).toFixed(2)+'</td><td style="padding:9px 12px;border-bottom:1px solid #c7dcf5;text-align:right;font-weight:700;color:#1d4ed8;">'+parseFloat(it.total||0).toFixed(2)+'</td></tr>';}).join("");
+var payments=getInvPayments(doc.id),totalPaid=payments.reduce(function(s,p){return s+(parseFloat(p.amount)||0);},0),balance=Math.max(0,(doc.grandTotal||0)-totalPaid);
+var ps=getPayStatus(doc)||"unpaid",psLabel={paid:"PAID",partial:"PARTIAL",unpaid:"UNPAID"}[ps],psColor={paid:"#15803d",partial:"#b45309",unpaid:"#b91c1c"}[ps];
+return '<div style="font-family:Arial,sans-serif;background:#fff;color:#1e293b;max-width:800px;margin:0 auto;">'+
+'<div style="background:linear-gradient(135deg,#1d4ed8,#1e40af);padding:28px 36px 20px;">'+
+'<div style="display:flex;justify-content:space-between;align-items:flex-start;">'+
+'<div><div style="font-size:26px;font-weight:900;color:#000;">'+escH(co)+'</div>'+
+'<div style="font-size:11px;color:#000;margin-top:5px;line-height:1.8;">'+(s.addr1||"")+' '+(s.addr2?" | "+s.addr2:"")+'<br>'+(s.phone?"Tel: "+s.phone:"")+(s.email?" | "+s.email:"")+'<br>'+(s.trn?"TRN: "+s.trn:"")+'</div></div>'+
+'<div style="text-align:right;"><div style="border:2px solid #000;border-radius:8px;padding:10px 20px;display:inline-block;">'+
+'<div style="font-size:11px;color:#000;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">TAX INVOICE</div>'+
+'<div style="font-size:28px;font-weight:900;color:#000;font-family:monospace;">'+escH(doc.num)+'</div></div></div></div></div>'+
+'<div style="background:#f1f5f9;padding:10px 36px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:1px solid #000;">'+
+'<div style="display:flex;gap:24px;font-size:12px;color:#000;">'+
+'<div><span style="font-size:10px;color:#000;font-weight:700;text-transform:uppercase;display:block;">Date</span><strong>'+doc.date+'</strong></div>'+
+(doc.due?'<div><span style="font-size:10px;color:#1e40af;font-weight:700;text-transform:uppercase;display:block;">Due Date</span><strong>'+doc.due+'</strong></div>':"")+
+(doc.docType?'<div><span style="font-size:10px;color:#1e40af;font-weight:700;text-transform:uppercase;display:block;">Type</span><strong style="text-transform:uppercase;">'+doc.docType+'</strong></div>':"")+'</div>'+
+'<span style="background:'+psColor+';color:#fff;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:800;">'+psLabel+'</span></div>'+
+'<div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid #dbeafe;">'+
+'<div style="padding:16px 36px;border-right:1px solid #000;"><div style="font-size:10px;font-weight:700;color:#000;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Bill To</div>'+
+'<div style="font-size:15px;font-weight:800;color:#000;">'+escH(doc.partyName||"-")+'</div>'+(doc.vehicle?'<div style="font-size:11px;color:#000;margin-top:3px;">Vehicle: <strong>'+escH(doc.vehicle)+'</strong></div>':"")+'</div>'+
+'<div style="padding:16px 36px;"><div style="font-size:10px;font-weight:700;color:#000;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">From</div>'+
+'<div style="font-size:14px;font-weight:700;color:#000;">'+escH(co)+'</div>'+(s.bank?'<div style="font-size:11px;color:#000;margin-top:3px;">Bank: '+escH(s.bank)+'</div>':"")+(s.iban?'<div style="font-size:11px;color:#000;">IBAN: '+escH(s.iban)+'</div>':"")+'</div></div>'+
+(doc.notes?'<div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:8px 36px;font-size:11px;"><strong>Note:</strong> '+escH(doc.notes)+'</div>':"")+
+'<div style="padding:18px 36px 0;"><table style="width:100%;border-collapse:collapse;font-size:12px;">'+
+'<thead><tr style="background:#000;"><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:center;width:36px;">#</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:left;">Description</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:center;">Qty</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:center;">Unit</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:right;">Unit Price</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:right;">Total ('+curr+')</th></tr></thead>'+
+'<tbody>'+items+'</tbody></table></div>'+
+'<div style="display:flex;justify-content:flex-end;padding:0 36px;">'+
+'<div style="width:290px;border:2px solid #dbeafe;border-radius:8px;overflow:hidden;margin-top:14px;">'+
+'<div style="display:flex;justify-content:space-between;padding:9px 14px;font-size:12px;border-bottom:1px solid #dbeafe;"><span>Subtotal</span><span>'+curr+' '+parseFloat(doc.subtotal||0).toFixed(2)+'</span></div>'+
+'<div style="display:flex;justify-content:space-between;padding:9px 14px;font-size:12px;border-bottom:1px solid #dbeafe;"><span>VAT ('+(doc.vatPct||5)+'%)</span><span>'+curr+' '+parseFloat(doc.vatAmt||0).toFixed(2)+'</span></div>'+
+'<div style="display:flex;justify-content:space-between;padding:12px 14px;font-size:15px;font-weight:900;background:#000;color:#fff;"><span>TOTAL</span><span>'+curr+' '+parseFloat(doc.grandTotal||0).toFixed(2)+'</span></div>'+
+(totalPaid>0?'<div style="display:flex;justify-content:space-between;padding:8px 14px;font-size:12px;background:#f0fdf4;border-bottom:1px solid #dbeafe;"><span>Paid</span><span style="color:#15803d;font-weight:700;">- '+curr+' '+totalPaid.toFixed(2)+'</span></div>':"")+
+(totalPaid>0?'<div style="display:flex;justify-content:space-between;padding:10px 14px;font-size:13px;font-weight:800;background:'+(balance>0?"#fef2f2":"#f0fdf4")+';"><span>Balance Due</span><span style="color:'+(balance>0?"#b91c1c":"#15803d")+';">'+curr+' '+balance.toFixed(2)+'</span></div>':"")+
+'</div></div>'+
+(payments.length?'<div style="padding:8px 36px;"><div style="font-size:11px;font-weight:700;color:#1e40af;margin-bottom:5px;">PAYMENT RECORDS</div><table style="width:100%;border-collapse:collapse;font-size:11px;">'+payments.map(function(p){return'<tr style="border-bottom:1px solid #dbeafe;"><td style="padding:5px 8px;">'+p.date+'</td><td style="padding:5px 8px;">'+methodLabel(p.method)+'</td><td style="padding:5px 8px;font-size:10px;color:#555;">'+(p.ref||"")+(p.month?" | "+p.month:"")+'</td><td style="padding:5px 8px;font-weight:700;text-align:right;color:#15803d;">'+curr+' '+parseFloat(p.amount).toFixed(2)+'</td></tr>';}).join("")+'</table></div>':"")+
+'<div style="display:flex;justify-content:space-between;padding:30px 36px 12px;">'+
+'<div style="text-align:center;width:180px;"><div style="border-top:1.5px solid #000;padding-top:7px;font-size:11px;color:#000;">Prepared By</div></div>'+
+'<div style="text-align:center;width:180px;"><div style="border-top:1.5px solid #000;padding-top:7px;font-size:11px;color:#000;">Authorized Signature</div></div></div>'+
+'<div style="background:#f1f5f9;padding:8px 36px;font-size:10px;color:#000;text-align:center;font-weight:600;border-top:1px solid #000;">TAX INVOICE &mdash; '+escH(co)+' &mdash; All prices in '+curr+'</div>'+
+'</div>';
+}
+
+// QUOTATION — Yellow/Amber, bold stamp design
+function printQuotation(doc,s,co,curr){
+var items=(doc.items||[]).map(function(it,i){return'<tr style="background:'+(i%2===0?"#fffbeb":"#fff")+'"><td style="padding:9px 12px;border-bottom:1px solid #fde68a;text-align:center;color:#b45309;font-weight:700;">'+(i+1)+'</td><td style="padding:9px 12px;border-bottom:1px solid #fde68a;">'+escH(it.desc)+'</td><td style="padding:9px 12px;border-bottom:1px solid #fde68a;text-align:center;">'+it.qty+'</td><td style="padding:9px 12px;border-bottom:1px solid #fde68a;text-align:center;">'+(it.unit||"")+'</td><td style="padding:9px 12px;border-bottom:1px solid #fde68a;text-align:right;">'+parseFloat(it.price||0).toFixed(2)+'</td><td style="padding:9px 12px;border-bottom:1px solid #fde68a;text-align:right;font-weight:700;color:#b45309;">'+parseFloat(it.total||0).toFixed(2)+'</td></tr>';}).join("");
+return '<div style="font-family:Arial,sans-serif;background:#fff;color:#1c1917;max-width:800px;margin:0 auto;">'+
+'<div style="height:7px;background:linear-gradient(90deg,#f59e0b,#d97706,#92400e);"></div>'+
+'<div style="padding:26px 36px;background:#fffbeb;border-bottom:1px solid #fde68a;display:flex;justify-content:space-between;align-items:flex-start;">'+
+'<div><div style="font-size:24px;font-weight:900;color:#000;">'+escH(co)+'</div>'+
+'<div style="font-size:11px;color:#000;margin-top:4px;line-height:1.8;">'+(s.addr1||"")+' '+(s.addr2?" | "+s.addr2:"")+'<br>'+(s.phone?"Tel: "+s.phone:"")+(s.email?" | "+s.email:"")+'<br>'+(s.trn?"TRN: "+s.trn:"")+'</div></div>'+
+'<div><div style="border:2px solid #000;border-radius:8px;padding:12px 22px;">'+
+'<div style="font-size:11px;color:#000;font-weight:800;letter-spacing:3px;text-transform:uppercase;">QUOTATION</div>'+
+'<div style="font-size:26px;font-weight:900;color:#000;font-family:monospace;margin-top:2px;">'+escH(doc.num)+'</div>'+
+'<div style="font-size:11px;color:#000;margin-top:4px;">Date: '+doc.date+'</div></div></div></div>'+
+'<div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid #000;">'+
+'<div style="padding:16px 36px;border-right:1px solid #000;"><div style="font-size:10px;font-weight:800;color:#000;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px;">Prepared For</div>'+
+'<div style="font-size:16px;font-weight:800;color:#000;">'+escH(doc.partyName||"Valued Customer")+'</div></div>'+
+'<div style="padding:16px 36px;"><div style="font-size:10px;font-weight:800;color:#000;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px;">Prepared By</div>'+
+'<div style="font-size:14px;font-weight:700;color:#000;">'+escH(co)+'</div></div></div>'+
+'<div style="background:#fef3c7;padding:8px 36px;border-bottom:1px solid #fde68a;font-size:11px;color:#92400e;">&#x1F4CC; This quotation is valid for <strong>30 days</strong> from issue date. Prices subject to change.</div>'+
+(doc.notes?'<div style="background:#fffbeb;border-left:4px solid #f59e0b;padding:8px 36px;font-size:11px;"><strong>Note:</strong> '+escH(doc.notes)+'</div>':"")+
+'<div style="padding:18px 36px 0;"><table style="width:100%;border-collapse:collapse;font-size:12px;">'+
+'<thead><tr style="background:#000;"><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:center;width:36px;">#</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:left;">Description / Service</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:center;">Qty</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:center;">Unit</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:right;">Unit Price</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:right;">Amount ('+curr+')</th></tr></thead>'+
+'<tbody>'+items+'</tbody></table></div>'+
+'<div style="display:flex;justify-content:flex-end;padding:0 36px;">'+
+'<div style="width:290px;margin-top:14px;">'+
+'<div style="display:flex;justify-content:space-between;padding:9px 14px;font-size:12px;border:1px solid #fde68a;border-bottom:none;background:#fffbeb;"><span>Subtotal</span><span>'+curr+' '+parseFloat(doc.subtotal||0).toFixed(2)+'</span></div>'+
+'<div style="display:flex;justify-content:space-between;padding:9px 14px;font-size:12px;border:1px solid #fde68a;border-bottom:none;background:#fffbeb;"><span>VAT ('+(doc.vatPct||5)+'%)</span><span>'+curr+' '+parseFloat(doc.vatAmt||0).toFixed(2)+'</span></div>'+
+'<div style="display:flex;justify-content:space-between;padding:13px 14px;font-size:15px;font-weight:900;background:#000;color:#fff;border-radius:0 0 8px 8px;"><span>QUOTED TOTAL</span><span>'+curr+' '+parseFloat(doc.grandTotal||0).toFixed(2)+'</span></div></div></div>'+
+'<div style="display:flex;justify-content:space-between;padding:32px 36px 14px;">'+
+'<div style="text-align:center;width:180px;"><div style="border-top:1.5px solid #000;padding-top:7px;font-size:11px;color:#000;">Prepared By</div></div>'+
+'<div style="background:#fff;border:2px dashed #000;border-radius:8px;padding:10px 20px;font-size:11px;text-align:center;color:#000;"><strong>Customer Acceptance</strong><div style="margin-top:20px;border-top:1px solid #000;padding-top:6px;">Signature &amp; Date</div></div></div>'+
+'<div style="height:7px;background:linear-gradient(90deg,#f59e0b,#d97706,#92400e);margin-top:10px;"></div>'+
+'</div>';
+}
+
+// CREDIT NOTE — Red/Crimson, reversed amounts
+function printCreditNote(doc,s,co,curr){
+var items=(doc.items||[]).map(function(it,i){return'<tr style="background:'+(i%2===0?"#fff5f5":"#fff")+'"><td style="padding:9px 12px;border-bottom:1px solid #fecaca;text-align:center;color:#b91c1c;font-weight:700;">'+(i+1)+'</td><td style="padding:9px 12px;border-bottom:1px solid #fecaca;">'+escH(it.desc)+'</td><td style="padding:9px 12px;border-bottom:1px solid #fecaca;text-align:center;">'+it.qty+'</td><td style="padding:9px 12px;border-bottom:1px solid #fecaca;text-align:center;">'+(it.unit||"")+'</td><td style="padding:9px 12px;border-bottom:1px solid #fecaca;text-align:right;">'+parseFloat(it.price||0).toFixed(2)+'</td><td style="padding:9px 12px;border-bottom:1px solid #fecaca;text-align:right;font-weight:700;color:#b91c1c;">('+parseFloat(it.total||0).toFixed(2)+')</td></tr>';}).join("");
+return '<div style="font-family:Arial,sans-serif;background:#fff;color:#1c1917;max-width:800px;margin:0 auto;">'+
+'<div style="background:#000;padding:7px 36px;text-align:center;"><div style="font-size:11px;font-weight:800;color:#fff;letter-spacing:3px;text-transform:uppercase;">CREDIT NOTE &mdash; AMOUNT CREDITED TO YOUR ACCOUNT</div></div>'+
+'<div style="padding:24px 36px;border-bottom:3px solid #000;display:flex;justify-content:space-between;align-items:flex-start;">'+
+'<div><div style="font-size:22px;font-weight:900;color:#000;">'+escH(co)+'</div>'+
+'<div style="font-size:11px;color:#000;margin-top:4px;line-height:1.8;">'+(s.addr1||"")+' '+(s.addr2?" | "+s.addr2:"")+'<br>'+(s.phone?"Tel: "+s.phone:"")+(s.email?" | "+s.email:"")+'<br>'+(s.trn?"TRN: "+s.trn:"")+'</div></div>'+
+'<div style="border:3px solid #000;border-radius:8px;padding:10px 20px;text-align:right;">'+
+'<div style="font-size:11px;font-weight:800;color:#000;letter-spacing:2px;text-transform:uppercase;">CREDIT NOTE</div>'+
+'<div style="font-size:28px;font-weight:900;color:#000;font-family:monospace;">'+escH(doc.num)+'</div>'+
+'<div style="font-size:11px;color:#000;margin-top:4px;">Date: '+doc.date+'</div></div></div>'+
+'<div style="display:grid;grid-template-columns:1fr 1fr;background:#fef2f2;border-bottom:2px solid #fecaca;">'+
+'<div style="padding:14px 36px;border-right:1px solid #fecaca;"><div style="font-size:10px;font-weight:800;color:#b91c1c;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Credit Issued To</div>'+
+'<div style="font-size:15px;font-weight:800;color:#7f1d1d;">'+escH(doc.partyName||"-")+'</div>'+(doc.vehicle?'<div style="font-size:11px;color:#555;margin-top:3px;">Vehicle: <strong>'+escH(doc.vehicle)+'</strong></div>':"")+'</div>'+
+'<div style="padding:14px 36px;"><div style="font-size:10px;font-weight:800;color:#b91c1c;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Issued By</div>'+
+'<div style="font-size:14px;font-weight:700;color:#7f1d1d;">'+escH(co)+'</div></div></div>'+
+(doc.notes?'<div style="background:#fef2f2;border-left:4px solid #b91c1c;padding:8px 36px;font-size:11px;"><strong>Reason:</strong> '+escH(doc.notes)+'</div>':"")+
+'<div style="padding:16px 36px 0;"><table style="width:100%;border-collapse:collapse;font-size:12px;">'+
+'<thead><tr style="background:#000;"><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:center;width:36px;">#</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:left;">Description of Credit</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:center;">Qty</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:center;">Unit</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:right;">Unit Price</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:right;">Credit Amt ('+curr+')</th></tr></thead>'+
+'<tbody>'+items+'</tbody></table></div>'+
+'<div style="display:flex;justify-content:flex-end;padding:0 36px;">'+
+'<div style="width:300px;margin-top:14px;border:2px solid #fecaca;border-radius:8px;overflow:hidden;">'+
+'<div style="display:flex;justify-content:space-between;padding:9px 14px;font-size:12px;border-bottom:1px solid #fecaca;background:#fef2f2;"><span>Subtotal</span><span>('+curr+' '+parseFloat(doc.subtotal||0).toFixed(2)+')</span></div>'+
+'<div style="display:flex;justify-content:space-between;padding:9px 14px;font-size:12px;border-bottom:1px solid #fecaca;background:#fef2f2;"><span>VAT ('+(doc.vatPct||5)+'%)</span><span>('+curr+' '+parseFloat(doc.vatAmt||0).toFixed(2)+')</span></div>'+
+'<div style="display:flex;justify-content:space-between;padding:13px 14px;font-size:16px;font-weight:900;background:#000;color:#fff;"><span>TOTAL CREDITED</span><span>('+curr+' '+parseFloat(doc.grandTotal||0).toFixed(2)+')</span></div></div></div>'+
+'<div style="margin:18px 36px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:12px 16px;font-size:11px;color:#7f1d1d;"><strong>Note:</strong> This credit note reduces your outstanding balance. Please retain for your records.</div>'+
+'<div style="display:flex;justify-content:space-between;padding:24px 36px 14px;">'+
+'<div style="text-align:center;width:180px;"><div style="border-top:1.5px solid #000;padding-top:7px;font-size:11px;color:#000;">Prepared By</div></div>'+
+'<div style="text-align:center;width:180px;"><div style="border-top:1.5px solid #000;padding-top:7px;font-size:11px;color:#000;">Received By</div></div></div>'+
+'<div style="background:#f1f5f9;padding:8px 36px;font-size:10px;color:#000;text-align:center;border-top:1px solid #000;">DELIVERY NOTE &mdash; '+escH(co)+'</div>'+curr+'</div>'+
+'</div>';
+}
+
+// LPO — Dark charcoal, structured purchase order
+function printLPO(doc,s,co,curr){
+var items=(doc.items||[]).map(function(it,i){return'<tr style="background:'+(i%2===0?"#f8f9fa":"#fff")+'"><td style="padding:9px 12px;border-bottom:1px solid #dee2e6;text-align:center;font-weight:700;">'+(i+1)+'</td><td style="padding:9px 12px;border-bottom:1px solid #dee2e6;">'+escH(it.desc)+'</td><td style="padding:9px 12px;border-bottom:1px solid #dee2e6;text-align:center;">'+it.qty+'</td><td style="padding:9px 12px;border-bottom:1px solid #dee2e6;text-align:center;">'+(it.unit||"")+'</td><td style="padding:9px 12px;border-bottom:1px solid #dee2e6;text-align:right;">'+parseFloat(it.price||0).toFixed(2)+'</td><td style="padding:9px 12px;border-bottom:1px solid #dee2e6;text-align:right;font-weight:700;">'+parseFloat(it.total||0).toFixed(2)+'</td></tr>';}).join("");
+return '<div style="font-family:Arial,sans-serif;background:#fff;color:#1c1917;max-width:800px;margin:0 auto;border:2px solid #1f2937;">'+
+'<div style="background:#fff;padding:22px 36px;border-bottom:2px solid #000;">'+
+'<div style="display:flex;justify-content:space-between;align-items:flex-start;">'+
+'<div><div style="font-size:12px;font-weight:700;color:#000;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px;">Purchase Order</div>'+
+'<div style="font-size:22px;font-weight:900;color:#000;">'+escH(co)+'</div>'+
+'<div style="font-size:11px;color:#000;margin-top:4px;line-height:1.8;">'+(s.addr1||"")+' '+(s.addr2?" | "+s.addr2:"")+'<br>'+(s.phone?"Tel: "+s.phone:"")+(s.email?" | "+s.email:"")+'<br>'+(s.trn?"TRN: "+s.trn:"")+'</div></div>'+
+'<div><div style="border:2px solid #000;border-radius:6px;padding:12px 20px;text-align:right;">'+
+'<div style="font-size:11px;color:#000;font-weight:700;letter-spacing:3px;margin-bottom:6px;">LPO</div>'+
+'<div style="font-size:30px;font-weight:900;color:#000;font-family:monospace;">'+escH(doc.num)+'</div>'+
+'<div style="font-size:11px;color:#000;margin-top:6px;">Date: '+doc.date+'</div>'+
+(doc.due?'<div style="font-size:11px;color:#f59e0b;margin-top:2px;">Deliver by: '+doc.due+'</div>':"")+'</div></div></div></div>'+
+'<div style="background:#1f2937;padding:10px 36px;display:flex;gap:32px;">'+
+'<div><div style="font-size:10px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Supplier</div><div style="font-weight:700;color:#f3f4f6;font-size:13px;">'+escH(doc.partyName||"-")+'</div></div>'+
+'<div><div style="font-size:10px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Ship To</div><div style="font-weight:700;color:#f3f4f6;font-size:13px;">'+escH(co)+'</div></div></div>'+
+(doc.notes?'<div style="background:#f9fafb;border-left:4px solid #374151;padding:10px 36px;font-size:11px;border-bottom:1px solid #e5e7eb;"><strong>Remarks:</strong> '+escH(doc.notes)+'</div>':"")+
+'<div style="padding:0 36px;"><table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:16px;">'+
+'<thead><tr style="background:#000;"><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:center;width:36px;">#</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:left;">Item Description</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:center;">Qty</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:center;">Unit</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:right;">Unit Price</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:right;">Amount ('+curr+')</th></tr></thead>'+
+'<tbody>'+items+'</tbody></table></div>'+
+'<div style="display:flex;justify-content:flex-end;padding:0 36px;">'+
+'<div style="width:280px;margin-top:14px;">'+
+'<div style="display:flex;justify-content:space-between;padding:9px 14px;font-size:12px;border:1px solid #e5e7eb;border-bottom:none;"><span>Subtotal</span><span>'+curr+' '+parseFloat(doc.subtotal||0).toFixed(2)+'</span></div>'+
+'<div style="display:flex;justify-content:space-between;padding:9px 14px;font-size:12px;border:1px solid #e5e7eb;border-bottom:none;"><span>VAT ('+(doc.vatPct||5)+'%)</span><span>'+curr+' '+parseFloat(doc.vatAmt||0).toFixed(2)+'</span></div>'+
+'<div style="display:flex;justify-content:space-between;padding:13px 14px;font-size:15px;font-weight:900;background:#000;color:#fff;border-radius:0 0 4px 4px;"><span>ORDER TOTAL</span><span>'+curr+' '+parseFloat(doc.grandTotal||0).toFixed(2)+'</span></div></div></div>'+
+'<div style="display:flex;justify-content:space-between;padding:26px 36px 14px;align-items:flex-start;">'+
+'<div style="width:200px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:10px 14px;font-size:11px;color:#374151;"><strong>Terms:</strong><br>&bull; Deliver per specifications<br>&bull; Invoice must quote this LPO #<br>&bull; Subject to inspection on receipt</div>'+
+'<div style="display:flex;gap:40px;">'+
+'<div style="text-align:center;width:150px;"><div style="border-top:1.5px solid #000;padding-top:7px;font-size:11px;color:#000;">Authorized By</div></div>'+
+'<div style="text-align:center;width:150px;"><div style="border-top:1.5px solid #000;padding-top:7px;font-size:11px;color:#000;">Supplier Acceptance</div></div></div></div>'+
+'<div style="background:#f1f5f9;padding:8px 36px;font-size:10px;color:#000;text-align:center;border-top:1px solid #000;">LPO / PURCHASE ORDER &mdash; '+escH(co)+' &mdash; All amounts in '+curr+'</div>'+
+'</div>';
+}
+
+// DELIVERY NOTE — Green, checklist style
+function printDelivery(doc,s,co,curr){
+var items=(doc.items||[]).map(function(it,i){return'<tr style="background:'+(i%2===0?"#f0fdf4":"#fff")+'"><td style="padding:10px 12px;border-bottom:1px solid #bbf7d0;text-align:center;color:#15803d;font-weight:700;">'+(i+1)+'</td><td style="padding:10px 12px;border-bottom:1px solid #bbf7d0;font-size:13px;">'+escH(it.desc)+'</td><td style="padding:10px 12px;border-bottom:1px solid #bbf7d0;text-align:center;font-weight:700;font-size:14px;">'+it.qty+'</td><td style="padding:10px 12px;border-bottom:1px solid #bbf7d0;text-align:center;"><div style="width:20px;height:20px;border:2px solid #15803d;border-radius:3px;display:inline-block;"></div></td></tr>';}).join("");
+return '<div style="font-family:Arial,sans-serif;background:#fff;color:#1c1917;max-width:800px;margin:0 auto;">'+
+'<div style="background:#000;padding:5px 36px;text-align:center;"><div style="font-size:11px;font-weight:800;color:#fff;letter-spacing:4px;text-transform:uppercase;">DELIVERY NOTE</div></div>'+
+'<div style="padding:20px 36px;background:#fff;border-bottom:2px solid #000;display:flex;justify-content:space-between;align-items:flex-start;">'+
+'<div><div style="font-size:22px;font-weight:900;color:#000;">'+escH(co)+'</div>'+
+'<div style="font-size:11px;color:#000;margin-top:4px;line-height:1.8;">'+(s.addr1||"")+' '+(s.addr2?" | "+s.addr2:"")+'<br>'+(s.phone?"Tel: "+s.phone:"")+(s.email?" | "+s.email:"")+'</div></div>'+
+'<div style="border:2px solid #000;border-radius:8px;padding:10px 20px;text-align:right;">'+
+'<div style="font-size:11px;color:#000;font-weight:700;letter-spacing:2px;margin-bottom:2px;">DN NUMBER</div>'+
+'<div style="font-size:26px;font-weight:900;color:#000;font-family:monospace;">'+escH(doc.num)+'</div>'+
+'<div style="font-size:11px;color:#000;margin-top:4px;">'+doc.date+'</div></div></div>'+
+'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:2px solid #bbf7d0;">'+
+'<div style="padding:13px 36px;border-right:1px solid #bbf7d0;"><div style="font-size:10px;font-weight:800;color:#15803d;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Deliver To</div><div style="font-size:14px;font-weight:800;color:#14532d;">'+escH(doc.partyName||"-")+'</div></div>'+
+'<div style="padding:13px 20px;border-right:1px solid #bbf7d0;"><div style="font-size:10px;font-weight:800;color:#15803d;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Vehicle / Driver</div><div style="font-size:13px;font-weight:700;color:#14532d;">'+escH(doc.vehicle||"-")+'</div></div>'+
+'<div style="padding:13px 20px;"><div style="font-size:10px;font-weight:800;color:#15803d;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Delivery Date</div><div style="font-size:13px;font-weight:700;color:#14532d;">'+doc.date+'</div></div></div>'+
+(doc.notes?'<div style="background:#f0fdf4;border-left:4px solid #15803d;padding:8px 36px;font-size:11px;border-bottom:1px solid #bbf7d0;"><strong>Instructions:</strong> '+escH(doc.notes)+'</div>':"")+
+'<div style="padding:14px 36px 0;"><div style="font-size:12px;font-weight:700;color:#15803d;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Items for Delivery</div>'+
+'<table style="width:100%;border-collapse:collapse;font-size:12px;">'+
+'<thead><tr style="background:#15803d;"><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:center;width:40px;">#</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:left;">Item / Description</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:center;width:80px;">Qty</th><th style="padding:10px 12px;color:#fff;font-size:11px;text-align:center;width:60px;">&#x2713; Done</th></tr></thead>'+
+'<tbody>'+items+'</tbody></table></div>'+
+'<div style="margin:14px 36px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:12px 16px;">'+
+'<div style="font-size:11px;color:#15803d;font-weight:700;margin-bottom:6px;">Condition on Delivery:</div>'+
+'<div style="font-size:11px;color:#374151;display:flex;gap:20px;"><span>&#x25A1; No full as mentioned in Delivery Note</span><span>&#x25A1; Full Tanker</span><span>&#x25A1; Wrong Water</span></div></div>'+
+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:10px 36px 18px;">'+
+'<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:14px;text-align:center;">'+
+'<div style="height:44px;border-bottom:1px solid #15803d;margin-bottom:6px;"></div>'+
+'<div style="font-size:11px;color:#15803d;font-weight:700;">DELIVERED BY</div>'+
+'<div style="font-size:10px;color:#6b7280;margin-top:3px;">Name: _______________ Date: _______</div></div>'+
+'<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:14px;text-align:center;">'+
+'<div style="height:44px;border-bottom:1px solid #15803d;margin-bottom:6px;"></div>'+
+'<div style="font-size:11px;color:#15803d;font-weight:700;">RECEIVED BY</div>'+
+'<div style="font-size:10px;color:#6b7280;margin-top:3px;">Name: _______________ Date: _______</div></div></div>'+
+'<div style="background:#15803d;padding:8px 36px;font-size:10px;color:rgba(255,255,255,0.7);text-align:center;">DELIVERY NOTE &mdash; '+escH(co)+' &mdash; Please keep a copy for your records</div>'+
+'</div>';
+}
+
+// ===================== PARTIES =====================
+function openPartyModal(existing){
+const isEdit = existing && typeof existing === 'object';
+editingPartyId = isEdit ? existing.id : null;
+document.getElementById('partyModal-title').textContent = isEdit ? 'Edit Party' : 'Add Party';
+document.getElementById('p-name').value = isEdit ? existing.name : '';
+document.getElementById('p-type').value = isEdit ? existing.type : 'customer';
+document.getElementById('p-vat').value = isEdit ? existing.vat : getDefaultVat();
+document.getElementById('p-trn').value = isEdit ? existing.trn || '' : '';
+document.getElementById('p-phone').value = isEdit ? existing.phone || '' : '';
+document.getElementById('p-addr').value = isEdit ? existing.addr || '' : '';
+document.getElementById('p-email').value = isEdit ? existing.email || '' : '';
+openModal('partyModal');
+}
+
+function saveParty(){
+const name=document.getElementById('p-name').value.trim();
+if(!name){ toast('Party name required','warn'); return; }
+const party={
+id:editingPartyId||genId(),
+name, type:document.getElementById('p-type').value,
+vat:document.getElementById('p-vat').value,
+trn:document.getElementById('p-trn').value,
+phone:document.getElementById('p-phone').value,
+addr:document.getElementById('p-addr').value,
+email:document.getElementById('p-email').value,
+};
+const parties=getData(PARTIES_KEY);
+if(editingPartyId){ const i=parties.findIndex(p=>p.id===editingPartyId); if(i>-1) parties[i]=party; else parties.push(party); }
+else parties.push(party);
+setData(PARTIES_KEY,parties);
+closeModal('partyModal');
+renderPartyList();
+populatePartySelects();
+populateStmtParty();
+toast('Party saved!','success');
+}
+
+function renderPartyList(filter='all'){
+let parties=getData(PARTIES_KEY);
+if(filter!=='all') parties=parties.filter(p=>p.type===filter||p.type==='both');
+const el=document.getElementById('party-list');
+el.innerHTML=parties.length?parties.map(p=>`
+<div class="party-card">
+<div class="party-info">
+<div class="party-name">${p.name} <span class="badge ${p.type==='supplier'?'badge-orange':p.type==='both'?'badge-gray':'badge-blue'}" style="margin-left:6px;">${p.type}</span></div>
+<div class="party-meta">${p.trn?'TRN: '+p.trn+' | ':''}VAT: ${p.vat||5}%${p.phone?' | '+p.phone:''}</div>
+${p.addr?`<div class="party-meta">${p.addr}</div>`:''}
+</div>
+<div style="display:flex;gap:6px;flex-shrink:0;">
+<button class="btn btn-warn btn-sm" onclick="openPartyModalById(\'${p.id}\')">Edit</button>
+<button class="btn btn-danger btn-sm" onclick="deleteParty('${p.id}')">Delete</button>
+</div>
+</div>`).join(''):`<div class="card"><div class="empty"><div class="empty-icon">👥</div><div class="empty-text">No parties added yet</div></div></div>`;
+}
+
+function openPartyModalFromStr(str){
+try{ openPartyModal(JSON.parse(str.replace(/'/g,'"'))); }catch(e){}
+}
+
+function openPartyModalById(id){
+const p=getData(PARTIES_KEY).find(x=>x.id===id);
+if(p) openPartyModal(p);
+}
+
+function deleteParty(id){
+confirmDelete(()=>{
+const parties=getData(PARTIES_KEY).filter(p=>p.id!==id);
+setData(PARTIES_KEY,parties);
+renderPartyList();
+populatePartySelects();
+toast('Deleted','success');
+});
+}
+
+function filterParties(filter,el){
+document.querySelectorAll('#sec-parties .tab').forEach(t=>t.classList.remove('active'));
+el.classList.add('active');
+renderPartyList(filter);
+}
+
+function populatePartySelects(){
+const parties=getData(PARTIES_KEY);
+const sel=document.getElementById('doc-party');
+const cur=sel.value;
+sel.innerHTML='<option value="">-- Select --</option>';
+parties.forEach(p=>{ sel.innerHTML+=`<option value="${p.id}">${p.name}</option>`; });
+sel.value=cur;
+}
+
+function populateStmtParty(){
+const parties=getData(PARTIES_KEY);
+const sel=document.getElementById('stmt-party');
+const cur=sel.value;
+sel.innerHTML='<option value="">-- Select Party --</option>';
+parties.forEach(p=>{ sel.innerHTML+=`<option value="${p.id}">${p.name}</option>`; });
+sel.value=cur;
+}
+
+// ===================== DESCRIPTIONS =====================
+function openDescModal(existing=null){
+editingDescId=existing?existing.id:null;
+document.getElementById('descModal-title').textContent=existing?'Edit Item':'Add Item Description';
+document.getElementById('d-name').value=existing?existing.name:'';
+document.getElementById('d-cat').value=existing?existing.cat:'sweet_water';
+document.getElementById('d-unit').value=existing?existing.unit:'Load';
+document.getElementById('d-price').value=existing?existing.price:'';
+openModal('descModal');
+}
+
+function saveDesc(){
+const name=document.getElementById('d-name').value.trim();
+if(!name){ toast('Description required','warn'); return; }
+const desc={
+id:editingDescId||genId(),
+name, cat:document.getElementById('d-cat').value,
+unit:document.getElementById('d-unit').value,
+price:document.getElementById('d-price').value,
+};
+const descs=getData(DESCS_KEY);
+if(editingDescId){ const i=descs.findIndex(d=>d.id===editingDescId); if(i>-1) descs[i]=desc; else descs.push(desc); }
+else descs.push(desc);
+setData(DESCS_KEY,descs);
+closeModal('descModal');
+renderDescList();
+toast('Item saved!','success');
+}
+
+function renderDescList(){
+const descs=getData(DESCS_KEY);
+const el=document.getElementById('desc-list');
+const cats={sweet_water:'🔵 Sweet Water',salt_water:'🟡 Salt Water',tanker:'🚛 Tanker Service',other:'📦 Other'};
+if(!descs.length){ el.innerHTML=`<div class="card"><div class="empty"><div class="empty-icon">📦</div><div class="empty-text">No item descriptions yet. Add water tanker types, salt/sweet water descriptions etc.</div></div></div>`; return; }
+const grouped={};
+descs.forEach(d=>{ if(!grouped[d.cat]) grouped[d.cat]=[]; grouped[d.cat].push(d); });
+el.innerHTML=Object.keys(grouped).map(cat=>`
+<div class="card" style="margin-bottom:10px;">
+<div class="card-title">${cats[cat]||cat}</div>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Description</th><th>Unit</th><th>Default Price</th><th>Actions</th></tr></thead>
+<tbody>${grouped[cat].map(d=>`<tr>
+<td><strong>${d.name}</strong></td>
+<td>${d.unit||'-'}</td>
+<td>${d.price?fmt(d.price):'-'}</td>
+<td style="display:flex;gap:4px;">
+<button class="btn btn-warn btn-sm" onclick="editDescById('${d.id}')">Edit</button>
+<button class="btn btn-danger btn-sm" onclick="deleteDesc('${d.id}')">Delete</button>
+</td>
+</tr>`).join('')}</tbody>
+</table></div>
+</div>`).join('');
+}
+
+function editDescById(id){
+const d=getData(DESCS_KEY).find(x=>x.id===id);
+if(d) openDescModal(d);
+}
+
+function deleteDesc(id){
+confirmDelete(()=>{
+const descs=getData(DESCS_KEY).filter(d=>d.id!==id);
+setData(DESCS_KEY,descs);
+renderDescList();
+toast('Deleted','success');
+});
+}
+
+// ===================== STATEMENT =====================
+function loadStatement(){
+const partyId=document.getElementById('stmt-party').value;
+const from=document.getElementById('stmt-from').value;
+const to=document.getElementById('stmt-to').value;
+const out=document.getElementById('statement-output');
+if(!partyId){ out.innerHTML=''; return; }
+const parties=getData(PARTIES_KEY);
+const party=parties.find(p=>p.id===partyId);
+const s=getSettings();
+let docs=getData(DOCS_KEY).filter(d=>d.partyId===partyId);
+if(from) docs=docs.filter(d=>d.date>=from);
+if(to) docs=docs.filter(d=>d.date<=to);
+docs=docs.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+
+let running=0;
+const rows=docs.map(d=>{
+let dr=0,cr=0;
+if(['invoice','lpo'].includes(d.type)) dr=d.grandTotal||0;
+if(d.type==='creditnote') cr=d.grandTotal||0;
+running+=dr-cr;
+return {d,dr,cr,balance:running};
+});
+
+const totalDr=rows.reduce((s,r)=>s+r.dr,0);
+const totalCr=rows.reduce((s,r)=>s+r.cr,0);
+
+out.innerHTML=`
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+<div>
+<div style="font-size:16px;font-weight:800;color:var(--primary);">${party?party.name:''}</div>
+<div style="font-size:12px;color:var(--text3);">Statement of Account${from?` | From: ${from}`:''}${to?` To: ${to}`:''}</div>
+</div>
+<button class="btn btn-primary btn-sm" onclick="printStatement('${partyId}','${from}','${to}')">Print Statement</button>
+</div>
+<div class="tbl-wrap">
+<div class="stmt-row hdr"><span>Date</span><span>Document</span><span style="text-align:right;">Debit</span><span style="text-align:right;">Credit</span><span style="text-align:right;">Balance</span></div>
+${rows.length?rows.map(r=>`
+<div class="stmt-row">
+<span>${r.d.date||'-'}</span>
+<span><strong>${r.d.num}</strong> <span class="badge ${docBadgeClass(r.d.type)}" style="font-size:10px;">${docTypeLabel(r.d.type)}</span></span>
+<span style="text-align:right;">${r.dr?fmt(r.dr):'-'}</span>
+<span style="text-align:right;">${r.cr?fmt(r.cr):'-'}</span>
+<span style="text-align:right;" class="stmt-balance">${fmt(r.balance)}</span>
+</div>`).join(''):'<div style="text-align:center;padding:20px;color:var(--text3);">No transactions found</div>'}
+<div class="stmt-row" style="background:#f0f4f8;font-weight:700;border-top:2px solid var(--border);">
+<span colspan="2">TOTAL</span><span></span>
+<span style="text-align:right;">${fmt(totalDr)}</span>
+<span style="text-align:right;">${fmt(totalCr)}</span>
+<span style="text-align:right;color:var(--primary);">${fmt(running)}</span>
+</div>
+</div>
+<div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+<div class="stat-card"><div class="stat-label">Total Debit</div><div class="stat-value" style="font-size:16px;">${fmt(totalDr)}</div></div>
+<div class="stat-card green"><div class="stat-label">Total Credit</div><div class="stat-value" style="font-size:16px;">${fmt(totalCr)}</div></div>
+<div class="stat-card ${running>0?'':'green'}"><div class="stat-label">Net Balance</div><div class="stat-value" style="font-size:16px;">${fmt(running)}</div></div>
+</div>
+</div>`;
+}
+
+function printStatement(partyId,from,to){
+const parties=getData(PARTIES_KEY);
+const party=parties.find(p=>p.id===partyId);
+const s=getSettings();
+let docs=getData(DOCS_KEY).filter(d=>d.partyId===partyId);
+if(from) docs=docs.filter(d=>d.date>=from);
+if(to) docs=docs.filter(d=>d.date<=to);
+docs=docs.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+let running=0;
+const rows=docs.map(d=>{
+let dr=0,cr=0;
+if(['invoice','lpo'].includes(d.type)) dr=d.grandTotal||0;
+if(d.type==='creditnote') cr=d.grandTotal||0;
+running+=dr-cr;
+return {d,dr,cr,balance:running};
+});
+const totalDr=rows.reduce((s,r)=>s+r.dr,0);
+const totalCr=rows.reduce((s,r)=>s+r.cr,0);
+
+const html=`<div style="font-family:Arial,sans-serif;padding:28px 32px;color:#000;font-size:12px;">
+<div style="display:flex;justify-content:space-between;border-bottom:2.5px solid #000;padding-bottom:12px;margin-bottom:14px;">
+<div><div style="font-size:18px;font-weight:800;color:#000;">${s.name||'Qatar Al Nahda Transport LLC'}</div>
+<div style="font-size:11px;color:#000;margin-top:3px;">${s.addr1||''} ${s.addr2||''}<br>${s.phone?'Tel: '+s.phone+' ':''} ${s.trn?'TRN: '+s.trn:''}</div>
+</div>
+<div style="text-align:right;"><div style="font-size:18px;font-weight:800;color:#000;">STATEMENT OF ACCOUNT</div>
+<div style="font-size:11px;color:#000;">Party: <b>${party?party.name:partyId}</b></div>
+${party&&party.trn?`<div style="font-size:11px;color:#000;">TRN: ${party.trn}</div>`:''}
+<div style="font-size:11px;color:#000;">${from?'From: '+from:''} ${to?'To: '+to:''}</div>
+</div>
+</div>
+<table style="width:100%;border-collapse:collapse;margin-bottom:14px;">
+<thead><tr>
+<th style="background:#000;color:#fff;padding:8px;font-size:11px;font-weight:700;text-align:left;">Date</th>
+<th style="background:#000;color:#fff;padding:8px;font-size:11px;font-weight:700;text-align:left;">Document</th>
+<th style="background:#000;color:#fff;padding:8px;font-size:11px;font-weight:700;text-align:left;">Type</th>
+<th style="background:#000;color:#fff;padding:8px;font-size:11px;font-weight:700;text-align:right;">Debit</th>
+<th style="background:#000;color:#fff;padding:8px;font-size:11px;font-weight:700;text-align:right;">Credit</th>
+<th style="background:#000;color:#fff;padding:8px;font-size:11px;font-weight:700;text-align:right;">Balance</th>
+</tr></thead>
+<tbody>${rows.map((r,i)=>`<tr style="background:${i%2?'#f8fafc':'#fff'};">
+<td style="padding:7px 8px;border-bottom:1px solid #e2e8f0;color:#000;">${r.d.date||'-'}</td>
+<td style="padding:7px 8px;border-bottom:1px solid #e2e8f0;font-weight:700;color:#000;">${r.d.num}</td>
+<td style="padding:7px 8px;border-bottom:1px solid #e2e8f0;color:#000;">${docTypeLabel(r.d.type)}</td>
+<td style="padding:7px 8px;border-bottom:1px solid #e2e8f0;text-align:right;color:#000;">${r.dr?((s.curr||'AED')+' '+r.dr.toFixed(2)):'-'}</td>
+<td style="padding:7px 8px;border-bottom:1px solid #e2e8f0;text-align:right;color:#000;">${r.cr?((s.curr||'AED')+' '+r.cr.toFixed(2)):'-'}</td>
+<td style="padding:7px 8px;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:700;color:#000;">${(s.curr||'AED')} ${r.balance.toFixed(2)}</td>
+</tr>`).join('')}
+<tr style="background:#f1f5f9;font-weight:800;border-top:2px solid #000;">
+<td colspan="3" style="padding:9px 8px;color:#000;">CLOSING BALANCE</td>
+<td style="padding:9px 8px;text-align:right;color:#000;">${(s.curr||'AED')} ${totalDr.toFixed(2)}</td>
+<td style="padding:9px 8px;text-align:right;color:#000;">${(s.curr||'AED')} ${totalCr.toFixed(2)}</td>
+<td style="padding:9px 8px;text-align:right;font-size:14px;color:#000;">${(s.curr||'AED')} ${running.toFixed(2)}</td>
+</tr></tbody>
+</table>
+<div style="display:flex;justify-content:space-between;margin-top:30px;">
+<div style="text-align:center;width:160px;"><div style="border-top:1px solid #000;padding-top:6px;font-size:11px;color:#000;">Prepared By</div></div>
+<div style="text-align:center;width:160px;"><div style="border-top:1px solid #000;padding-top:6px;font-size:11px;color:#000;">Authorized</div></div>
+</div>
+</div>`;
+document.getElementById('printArea').innerHTML=html;
+window.print();
+}
+
+// ===================== SEARCH =====================
+function quickSearch(q){
+const res=document.getElementById('dashSearchResults');
+if(!q||q.length<2){ res.style.display='none'; return; }
+const results=searchAll(q);
+if(!results.length){ res.style.display='block'; res.innerHTML='<div class="empty"><div class="empty-text">No results</div></div>'; return; }
+res.style.display='block';
+res.innerHTML=`<div style="padding:10px;">${results.slice(0,5).map(r=>`
+<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+<div><strong>${r.num}</strong> <span class="badge ${docBadgeClass(r.type)}">${docTypeLabel(r.type)}</span> <span style="font-size:12px;color:var(--text3);">${r.partyName||''}</span></div>
+<div style="font-size:12px;font-weight:700;">${fmt(r.grandTotal)}</div>
+</div>`).join('')}</div>`;
+}
+
+function globalSearch(q){
+const el=document.getElementById('searchResults');
+if(!q||q.length<2){ el.innerHTML='<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">Start typing to search...</div></div>'; return; }
+const results=searchAll(q);
+if(!results.length){ el.innerHTML='<div class="card"><div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">No results found for "'+escH(q)+'"</div></div></div>'; return; }
+el.innerHTML=`<div class="card"><div class="card-title">Found ${results.length} result(s)</div>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Doc#</th><th>Type</th><th>Party</th><th>Date</th><th>Amount</th><th>Action</th></tr></thead>
+<tbody>${results.map(d=>`<tr>
+<td><strong>${d.num}</strong></td>
+<td><span class="badge ${docBadgeClass(d.type)}">${docTypeLabel(d.type)}</span></td>
+<td>${d.partyName||'-'}</td>
+<td>${d.date||'-'}</td>
+<td><strong>${fmt(d.grandTotal)}</strong></td>
+<td><button class="btn btn-outline btn-sm" onclick="viewDoc('${d.id}')">View</button></td>
+</tr>`).join('')}</tbody>
+</table></div></div>`;
+}
+
+function searchAll(q){
+const lq=q.toLowerCase();
+return getData(DOCS_KEY).filter(d=>{
+if(d.num&&d.num.toLowerCase().includes(lq)) return true;
+if(d.partyName&&d.partyName.toLowerCase().includes(lq)) return true;
+if(d.date&&d.date.includes(lq)) return true;
+if(d.vehicle&&d.vehicle.toLowerCase().includes(lq)) return true;
+if(d.notes&&d.notes.toLowerCase().includes(lq)) return true;
+if(d.items&&d.items.some(it=>it.desc&&it.desc.toLowerCase().includes(lq))) return true;
+if(d.grandTotal&&String(d.grandTotal).includes(lq)) return true;
+return false;
+});
+}
+
+// ===================== MODAL UTILS =====================
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+function confirmDelete(cb){
+document.getElementById('confirm-msg').textContent='Are you sure you want to delete this item? This cannot be undone.';
+document.getElementById('confirm-yes').onclick=()=>{ closeModal('confirmModal'); cb(); };
+openModal('confirmModal');
+}
+
+// ===================== TOAST =====================
+function toast(msg, type='success'){
+const t=document.getElementById('toast');
+t.textContent=msg;
+t.style.background=type==='success'?'#00a86b':type==='warn'?'#dd6b20':'#e53e3e';
+t.style.display='block';
+setTimeout(()=>{ t.style.display='none'; },2800);
+}
+
+// ===================== UTILS =====================
+function escH(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Add default descriptions on first load
+if(!getData(DESCS_KEY).length){
+const defaults=[
+{id:genId(),name:'Sweet Water Tanker 10,000 Gallon',cat:'sweet_water',unit:'Tanker',price:'350'},
+{id:genId(),name:'Sweet Water Tanker 5,000 Gallon',cat:'sweet_water',unit:'Tanker',price:'200'},
+{id:genId(),name:'Sweet Water Tanker 3,000 Gallon',cat:'sweet_water',unit:'Tanker',price:'150'},
+{id:genId(),name:'Salt Water Tanker 10,000 Gallon',cat:'salt_water',unit:'Tanker',price:'250'},
+{id:genId(),name:'Salt Water Tanker 5,000 Gallon',cat:'salt_water',unit:'Tanker',price:'150'},
+{id:genId(),name:'Salt Water Tanker 3,000 Gallon',cat:'salt_water',unit:'Tanker',price:'100'},
+{id:genId(),name:'Salt Water Tanker 2,500 Gallon',cat:'salt_water',unit:'Tanker',price:'80'},
+{id:genId(),name:'Water Tanker Transport Service',cat:'tanker',unit:'Trip',price:'500'},
+{id:genId(),name:'Salt Water Supply - Bulk',cat:'salt_water',unit:'Load',price:'300'},
+{id:genId(),name:'Sweet Water Supply - Bulk',cat:'sweet_water',unit:'Load',price:'400'},
+];
+setData(DESCS_KEY,defaults);
+renderDescList();
+}
+</script>
+
+</body>
+</html>
